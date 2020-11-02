@@ -1,0 +1,212 @@
+<style lang='scss'>
+.selectbox{
+  padding:28rpx 32rpx;
+  background: #fcfcfc;
+  position:fixed;
+  z-index:3;
+  top:0;
+  left:0;
+  box-sizing:border-box;
+  width:100%;
+  border-bottom:2rpx solid rgba(0, 0, 0, 0.2);
+}
+</style>
+
+<template>
+  <!--到面 -->
+  <view>
+    <view class="selectbox">
+      <select :selectData.sync="selectlist" @childFn.user="parentFn"></select>
+    </view>
+
+    <view style="height:{{winHeight-138}}rpx;margin-top:138rpx;">
+      <block wx:if="{{interviewStatus}}">
+        <repeat for="{{interviewData}}" key="index" index="index" item="item">
+          <repeople :item.sync="item"  :username.sync="item.pusername" :username.sync="item.pusername"  :lastposition.sync="item.lastposition" :lastcompany.sync="item.lastcompany"  :collectionid.sync="item.collectionid" ></repeople>
+        </repeat>
+        <!--加载更多时动画-->
+        <bottomloadmore :syncShow.sync="showLoading" message="正在加载"></bottomloadmore>
+      </block>
+      <block wx:else>
+        <defaultpage img="/images/icons/interview.png" text="正在为您全速沟通人才中 优秀候选人稍后呈现" btntext="" ></defaultpage>
+      </block>
+    </view>
+  </view>
+</template>
+
+<script>
+
+import wepy from 'wepy';
+import api from '@/api/companyapi';
+import BottomLoadMore from "../../components/bottomloadmore";
+import Repeople from './repeople';
+import Select from '../../components/select';
+import Defaultpage from '../../components/defaultpage';
+import {makePy} from '../../utils/pinying'
+import utils from '../../utils/utils'
+
+
+export default class DeliveryPage extends wepy.page {
+    methods = {
+        parentFn (type, evt) {
+          var that= this;
+          if(type!=that.querytype){
+            that.querytype=type
+            that.currentPage=1
+            that.$apply();
+            that.getInterviewlist(that.querytype,that.currentPage,true)
+          }
+        }
+    };
+    config = {
+        navigationBarTitleText: '',
+        enablePullDownRefresh:true,
+    }
+    data = {
+        interviewData:[],
+        warningWord:"",
+        interviewStatus:false,
+        showLoading: false,
+        currentPage:1,
+        totalPage:0,
+        showStatus: false,
+        querytype:'99', //到面查询类型
+        token:'',
+        tokenKey:'',
+        winHeight:"",//窗口高度
+        selectlist:[{"type":'99',"value":'全部状态'},{"type":'0',"value":'待确认'},{"type":'1',"value":'约面中'},{"type":'2',"value":'已安排面试'},,{"type":'3',"value":'已到面'},{"type":'4',"value":'未到面'},{"type":'5',"value":'不合适'}],
+        jobid:''
+    };
+    components = {
+        bottomloadmore: BottomLoadMore,
+        repeople:Repeople,
+        defaultpage:Defaultpage,
+        select:Select
+    };
+    onLoad(options) {
+      this.jobid=options.jobid?options.jobid:'';
+      this.$apply();
+      wx.setNavigationBarTitle({
+        title: options.jobname+"(到面)"
+      })
+        // 获取登录信息
+        const that = this;
+        wx.getStorage({
+            key: 'loginDataC',
+            success: function(res) {
+                that.token = res.data.token;
+                that.tokenKey = res.data.tokenKey;
+                that.$apply();
+                //请求到面列表
+              that.getInterviewlist(that.querytype,that.currentPage,true)
+            },fail:function(){
+              utils.toLogin()
+            }
+        })
+        //  高度自适应
+        wepy.getSystemInfo( {
+            success: function( res ) {
+                var clientHeight=res.windowHeight,
+                    clientWidth=res.windowWidth,
+                    rpxR=750/clientWidth;
+                var  calc=clientHeight*rpxR;
+                that.winHeight = calc
+            }
+        });
+    }
+    //获取到面列表
+    async getInterviewlist(querytype,page,reset) {
+        const that = this;
+        await api.getInterviewlist({
+            query: {
+                head: {
+                    "transcode": "H0078",
+                    "type": "h"
+                },
+                data: {
+                    "token": that.token,
+                    "tokenKey": that.tokenKey,
+                    "querytype":querytype,
+                    "page":page.toString(),
+                    "jobid":that.jobid
+                }
+            }
+        }).then(json=>{
+          that.interviewStatus = true;
+          var interviewlistArr = json.data.data.interviewList ;
+
+
+          var interviewlist = interviewlistArr.map(function(obj,index) {
+            obj.head=makePy(obj.pusername);//添加id属性
+            obj.sex=obj.sex=='男'?'1':'0';
+            obj.age=obj.age?utils.judge(obj.age,'岁'):obj.age
+            obj.workyears=obj.workyears?(obj.workyears=="应届毕业生"?obj.workyears:utils.judge(obj.workyears,'年')):obj.workyears
+            var reg = /\-/
+            obj.time=obj.interviewdate!=''?obj.interviewdate.replace(reg,'年').replace(reg,'月')+'日'+' '+obj.interviewtime:''
+            return obj;
+          });
+
+          this.interviewData = reset ? interviewlist:that.joblistData.concat(interviewlist)
+          that.totalPage =Math.ceil(json.data.data.count/ 10);
+          if(that.interviewData.length==0){
+              that.interviewStatus = false;
+          }
+        }).catch(json=>{
+          that.interviewStatus = false;
+        })
+        that.$apply();
+    }
+
+
+    /**
+     * 页面上拉触底事件的处理函数
+     */
+    onReachBottom(event) {
+        let that = this;
+        that.showLoading = true;
+        //判断总页数是否大于翻页数
+        if ((that.totalPage) > that.currentPage) {
+            //防止重复加载
+            if (that.preventRepeatReuqest) {
+            return true;
+            }
+            that.preventRepeatReuqest = true;
+            that.currentPage++;
+            that.getInterviewlist(that.querytype,that.currentPage,false);
+            that.preventRepeatReuqest = false;
+        } else {
+            that.showLoading = false;
+        }
+    }
+    pageDataChange(){
+        var that=this
+        that.currentPage=1
+        that.$apply()
+        that.getInterviewlist(that.querytype,that.currentPage,true)
+
+    }
+
+  // 下拉刷新
+  onPullDownRefresh() {
+    var that=this
+    wx.showNavigationBarLoading() //在标题栏中显示加载
+    that.currentPage=1
+    that.$apply()
+    that.getInterviewlist(that.querytype,that.currentPage,true)
+    //模拟加载
+    setTimeout(function()
+    {
+     wx.hideNavigationBarLoading() //完成停止加载
+     wx.stopPullDownRefresh() //停止下拉刷新
+    },1500);
+
+  }
+pageDataChange(){
+        var that=this
+        that.currentPage=1
+        that.$apply()
+        that.getInterviewlist(that.querytype,that.currentPage,true)
+
+    }
+}
+</script>

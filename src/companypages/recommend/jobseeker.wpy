@@ -1,0 +1,159 @@
+<style lang='scss'>
+</style>
+
+<template>
+    <view>
+      <!--无智能推荐 -->
+      <view wx:if="{{joblistStatus}}">
+        <repeat for="{{joblistData}}" key="index" index="index" item="item">
+          <repeople :item.sync="item" :username.sync="item.username" :lastposition.sync="item.titlenow" :lastcompany.sync="item.companynow" :recommenddate.sync="item.updatedate" :status.sync="item.status" :collectionid.sync="item.collectionid" ></repeople>
+        </repeat>
+        <!--加载更多时动画-->
+        <bottomloadmore :syncShow.sync="showLoading" message="正在加载"></bottomloadmore>
+      </view>
+      <block wx:else="{{joblistStatus}}">
+        <defaultpage img="/images/icons/no_delivery.png" text="暂未匹配到合适的简历 查看系统简历，或进行简历搜索"  ></defaultpage>
+      </block>
+    </view>
+</template>
+
+<script>
+
+import wepy from 'wepy';
+import api from '@/api/companyapi';
+import BottomLoadMore from "../../components/bottomloadmore";
+import Repeople from './repeople';
+import Defaultpage from '../../components/defaultpage';
+import {makePy} from '../../utils/pinying';
+import utils from '../../utils/utils'
+import tip from '../../utils/tip'
+
+
+
+export default class DeliveryPage extends wepy.page {
+    config = {
+        navigationBarTitleText: '',
+         enablePullDownRefresh: true
+    }
+    data = {
+        token:'',
+        tokenKey:'',
+        jobid:'',
+        joblistData: [],
+        warningWord:"",
+        joblistStatus: false,
+        showLoading: false,
+        currentPage:1,
+        totalPage:0
+    };
+    components = {
+        bottomloadmore: BottomLoadMore,
+        repeople:Repeople,
+        defaultpage:Defaultpage,
+    };
+    onLoad(options) {
+      this.jobid=options.jobid?options.jobid:'';
+      this.$apply();
+      wx.setNavigationBarTitle({
+        title: options.jobname
+      })
+      var jobId=options.jobid;
+        // 获取登录信息
+        const that = this;
+        wx.getStorage({
+            key: 'loginDataC',
+            success: function(res) {
+                that.token = res.data.token;
+                that.tokenKey = res.data.tokenKey;
+                that.$apply();
+                // 获取求职者信息列表
+                that.getPinfoList(that.currentPage,true)
+
+            },fail:function(){
+              utils.toLogin()
+            }
+        })
+    }
+
+    //系统简历
+    async getPinfoList(page,reset) {
+        //参数page:当前页,参数preset是否刷新页面（操作上拉刷新）
+        const that = this;
+        await api.getPinfoList({
+            query: {
+                head: {
+                    "transcode": "H0015",
+                    "type": "h"
+                },
+                data: {
+                    "token": that.token,
+                    "tokenKey": that.tokenKey,
+                    "querytype":'2',
+                    "page":page.toString(),
+                    "salary":'',
+                    "edu":'',
+                    "keyword":'',
+                    "workyears":'',
+                    "city":'',
+                    "jobid":that.jobid
+                }
+            }
+        }).then(json=>{
+          that.joblistStatus = true;
+          var joblistArr = json.data.list ;
+
+          var joblist = joblistArr.map(function(obj,index) {
+            obj.head=makePy(obj.username);//添加id属性
+            obj.sex=obj.sex=='男'?'1':'0';
+            obj.age=obj.age?utils.judge(obj.age,'岁'):obj.age
+            obj.workyears=obj.workyears?(obj.workyears=="应届毕业生"?obj.workyears:utils.judge(obj.workyears,'年')):obj.workyears
+            obj.updatedate=obj.updatedate==''?'':utils.getFormat("yyyy-mm-dd",obj.updatedate);
+            return obj;
+          });
+          this.joblistData = reset ? joblist:that.joblistData.concat(joblist)
+          that.totalPage =Math.ceil(json.data.num/ 10);
+          if(that.joblistData.length==0){
+              that.joblistStatus = false;
+          }
+        }).catch(json=>{
+          that.joblistStatus = false;
+          tip.error(json.data.returnMsg)
+        })
+        that.$apply();
+    }
+    /**
+     * 页面上拉触底事件的处理函数
+     */
+    onReachBottom(event) {
+        let that = this;
+        that.showLoading = true;
+        //判断总页数是否大于翻页数
+        if ((that.totalPage) > that.currentPage) {
+            //防止重复加载
+            if (that.preventRepeatReuqest) {
+              return true;
+            }
+            that.preventRepeatReuqest = true;
+            that.currentPage++;
+            that.getPinfoList(that.currentPage,false);
+            that.preventRepeatReuqest = false;
+        } else {
+           that.showLoading = false;
+        }
+    }
+    onPullDownRefresh() {
+      var that=this
+      wx.showNavigationBarLoading() //在标题栏中显示加载
+      that.currentPage=1
+      that.$apply()
+      that.getPinfoList(that.currentPage,true)
+      //模拟加载
+      setTimeout(function()
+      {
+       wx.hideNavigationBarLoading() //完成停止加载
+       wx.stopPullDownRefresh() //停止下拉刷新
+      },1500);
+
+    }
+}
+</script>

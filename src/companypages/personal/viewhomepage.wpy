@@ -1,0 +1,176 @@
+<style lang="less">
+  page{
+    background:#F9F9F9;
+  }
+  .box{
+    background:#ffffff;
+    padding:0 28rpx;
+    margin-bottom:20rpx;
+    .title{
+      line-height: 28rpx;
+      color: rgba(51, 51, 51, 1);
+      font-size: 32rpx;
+      line-height:80rpx;
+      border-bottom:2rpx solid #F1F1F1;
+    }
+    .content{
+      padding:20rpx 0;
+      .text{
+        line-height: 40rpx;
+        color: rgba(101, 101, 101, 1);
+        font-size: 28rpx;
+        padding-bottom:20rpx;
+      }
+    }
+  }
+  .top{
+    padding:40rpx 0;
+  }
+  .headimg{
+    border-radius:50%;
+    width:114rpx;
+    height:114rpx;
+    margin:0 auto;
+    image{
+      width:114rpx;
+      height:114rpx;
+      display:block;
+    }
+  }
+  .companyname{
+    line-height:38rpx;
+    font-size:32rpx;
+    margin-top:14rpx;
+    text-align: center;
+    max-width: 94%;
+    margin: 0 auto;
+    max-height: 76rpx;
+  }
+  .companyinfo{
+    text-align: center;
+    text{
+      color: rgba(160, 160, 160, 1);
+      font-size: 28rpx;
+      &:not(:last-child){
+        &:after{
+          content:'|';
+          padding:0 4rpx;
+        }
+      }
+    }
+  }
+  .location{
+    width:24rpx;
+    height:36rpx;
+    display:inline-block;
+    vertical-align:middle;
+    margin-right:10rpx;
+  }
+  .address{
+    line-height: 34rpx;
+    color: rgba(101, 101, 101, 1);
+    font-size: 28rpx;
+  }
+</style>
+<template>
+  <view class="box top">
+    <view class='headimg'>
+      <image wx:if="{{mblog}}" src="{{mblog}}" mode="widthFix"></image>
+      <image wx:else="{{mblog}}" src="/images/icons/default_head.png" mode="widthFix"></image>
+    </view>
+    <view class="companyname">{{corpname}}</view>
+    <view class="companyinfo">
+      <text wx:if="{{city}}">{{city}}</text>
+      <text wx:if="{{scope}}">{{scope}}</text>
+      <text wx:if="{{nature}}">{{nature}}</text>
+    </view>
+  </view>
+  <view class="box">
+    <view class="title">公司简介</view>
+    <view class="content">
+      <view class="text" wx:if="{{description}}">
+      {{description}}
+      </view>
+
+    </view>
+  </view>
+  <view class="box">
+    <view class="title">公司地址</view>
+    <view class="content">
+      <view class="address" wx:if="{{address}}">
+        <image class="location" src="/images/icons/location_pink.png" mode="widthFix"></image>
+        <text >{{address}}</text>
+      </view>
+
+    </view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '@/api/companyapi';
+  import tip from '../../utils/tip';
+  import utils from '../../utils/utils';
+
+  export default class BaseInfo extends wepy.page {
+
+    config = {
+        navigationBarTitleText: '公司详情',
+    }
+    data = {
+      token:'',
+      tokenKey:'',
+      mblog:"",
+      corpname:"",
+      city:"",
+      scope:"",
+      nature:"",
+      description:"",
+      address:"",
+    }
+    onLoad(options) {
+      var that=this
+      wx.getStorage({
+          key: 'loginDataC',
+          success: function(res) {
+              that.token = res.data.token;
+              that.tokenKey = res.data.tokenKey;
+              that.$apply();
+              // 获取公司信息
+              that.getCompanyInfo()
+
+          }
+      })
+    }
+    methods = {
+    }
+
+    //获取公司信息
+    async getCompanyInfo() {
+        const that = this;
+        const json = await api.getCompanyInfo({
+            query: {
+              head: {
+                  "transcode": "H0014",
+                  "type": "h"
+              },
+              data: {
+                  "tokenKey": that.tokenKey,
+                  "token": that.token,
+              }
+            }
+        }).then(json=>{
+          that.mblog=json.data.data.mblog,
+          that.corpname=json.data.data.corpname,
+          that.city=json.data.data.city,
+          that.scope=json.data.data.scope,
+          that.nature=json.data.data.nature,
+          that.description=json.data.data.description,
+          that.address=json.data.data.address,
+          that.$apply();
+        }).catch(json=>{
+          tip.error(json.data.returnMsg);
+        })
+    }
+
+  }
+</script>

@@ -1,0 +1,484 @@
+<style lang="scss">
+  .container{
+    margin: 0 40rpx;
+  }
+  .line{
+    background: #f8f8f8;
+    margin-bottom: 22rpx;
+    height: 80rpx;
+    border-radius: 200rpx;
+    display: flex;
+    align-items: center;
+    input,.city{
+      flex: 1;
+
+    }
+  }
+</style>
+
+<template>
+    <view>
+        <view wx:if="{{!isShowCity}}" class="container">
+            <view class="line">
+              <input type="text" placeholder="搜索规则任意组合：公司+岗位等"/>
+            </view>
+            <view class="line">
+              <view class="city">上海</view>
+            </view>
+
+        </view>
+        <citylist wx:if="{{isShowCity}}"
+                  @cityNameFn.user="parentCityNameFn"
+                  :citySelected.sync="city"
+        ></citylist>
+
+    </view>
+
+</template>
+
+<script>
+import wepy from 'wepy';
+import api from '@/api/companyapi';
+import {USER_OPERATE_INFO, LOGIN_INFO} from '../../utils/constants';
+import tip from '../../utils/tip';
+import Search from '../../components/search';
+import CityList from '../../components/citylist';
+import CommPosi from '../../components/commposi';
+import CorpList from '../../components/corplist';
+import BottomLoadMore from "../../components/bottomloadmore";
+import {filter} from 'lodash';
+const peoSearch = require('../../data/peosearch-data.js');
+const  regions = require('../../utils/regions');
+
+
+export default class SearchPage extends wepy.page {
+
+    config={
+        navigationBarTitleText: '搜索',
+    }
+
+    data={
+        isShowCity: false,
+        isUnderSearch: false,       //是否在搜索状态
+        keyword: '',    //输入字段
+        hunterjobList: [],       //服务器返回
+        corplist: [],
+        peoSearch: peoSearch,
+        city: '',
+        keywordhisList: [],
+        isShowJobList: false,
+        isShowCorpList: false,
+        showLoading: false,
+        isJobEmpty: false,
+        isCorpEmpty: false,
+        currentPage: 1,   //当前页面
+        totalJobPage: 0,    //总数
+        totalCorpPage: 0,
+        regions: regions,
+        dictionaryList: ["DICT_COMP_CITY", "DICT_COMP_INDUSTRY", "DICT_JOB_PUB_DATE", "DICT_COMP_NATURE"],
+        areaid: [],
+        industryid: [],
+        publicdate: [],
+        nature: [],
+        indexRegion: "",
+        indexIndustry: "",
+        indexPublic: "",
+        indexNature: "",
+        areaidStatus: true,
+        industryidStatus: true,
+        publicdateStatus: true,
+        natureStatus: true,
+        isShowCityName: true,
+        loginInfo: {},
+        jobNum: 0,
+        corpNum: 0
+    }
+
+    components = {
+        search: Search,
+        citylist: CityList,
+        commposi: CommPosi,
+        corplist: CorpList,
+        bottomloadmore: BottomLoadMore,
+    }
+
+    onLoad (options) {
+        this.loginInfo =  wx.getStorageSync(LOGIN_INFO) || {};
+        let userSpecialInfo = wx.getStorageSync(USER_OPERATE_INFO) || {};
+        if (userSpecialInfo.city) {
+            this.city = userSpecialInfo.city;
+        } else {
+            this.city = '全国';
+        }
+        if(userSpecialInfo.keywordhisList) {
+            this.keywordhisList = userSpecialInfo.keywordhisList;
+        }
+        const that = this;
+        // 获取数据字典
+        that.dictionaryList.forEach((item,index) => {
+            switch (item){
+            case "DICT_COMP_CITY":// 城市
+                this.getDictData(item).then(json => {
+                    if (json.data.returnCode == "AAAAAAA") {
+                        let arr = []
+                        json.data.data.forEach((item,index)=>{
+                            arr.push(item.label)
+                        })
+                        that.areaid = arr;
+                        that.$apply();
+                    } else {
+                        tip.error(json.data.returnMsg);
+                    }
+                })
+                break;
+            case "DICT_COMP_INDUSTRY":// 期望行业
+                this.getDictData(item).then(json => {
+                    if (json.data.returnCode == "AAAAAAA") {
+                        let arr = []
+                        json.data.data.forEach((item,index)=>{
+                            arr.push(item.label)
+                        })
+                        that.industryid = arr;
+                        that.$apply();
+                    } else {
+                        tip.error(json.data.returnMsg);
+                    }
+                })
+                break;
+            case "DICT_JOB_PUB_DATE":// 发布时间
+                this.getDictData(item).then(json => {
+                    if (json.data.returnCode == "AAAAAAA") {
+                        let arr = []
+                        json.data.data.forEach((item,index)=>{
+                            arr.push(item.label)
+                        })
+                        that.publicdate = arr;
+                        that.$apply();
+                    } else {
+                        tip.error(json.data.returnMsg);
+                    }
+                })
+                break;
+            case "DICT_COMP_NATURE"://企业性质
+                this.getDictData(item).then(json => {
+                    if (json.data.returnCode == "AAAAAAA") {
+                        let arr = []
+                        json.data.data.forEach((item,index)=>{
+                            arr.push(item.label)
+                        })
+                        that.nature = arr;
+                        that.$apply();
+                    } else {
+                        tip.error(json.data.returnMsg);
+                    }
+                })
+                break;
+            }
+        });
+    }
+
+    methods={
+        parentSearchFn(val) { //搜索关键字
+            this.isUnderSearch = true;
+            this.keyword = val;
+            this.doPosiSearch(val);
+            this.doCorpSearch(val);
+            this.hunterjobList = [];
+            this.corplist = [];
+            wx.showToast({
+                title: "加载中",
+                icon: "loading",
+                mask: true,
+                duration: 300
+            });
+        },
+        parentTrShowCityFn(val) {
+            this.isShowCity = val;
+        },
+        parentUnderSearchFn(val){//清空搜索框内容后，不在搜索状态
+            this.isUnderSearch = val;
+            this.isShowJobList = val;
+            this.isShowCorpList = val;
+            this.isShowCityName = true;
+        },
+        parentCityNameFn(val){
+            if(val.length > 3) {
+                val = val.substring(0, 3) + "...";
+            }
+            this.$invoke('search', 'setCityFn', val);
+            this.isShowCity = false;
+            this.city = val;
+        },
+        selHisKeyWordFn(event){
+            this.$invoke('search', 'setSearchInputFn', event.currentTarget.dataset.his);
+        },
+        delHisCellFn(event){
+            let del = event.currentTarget.dataset.del;
+            let userSpecialInfo = wx.getStorageSync(USER_OPERATE_INFO) || {};
+            this.keywordhisList = filter(userSpecialInfo.keywordhisList, (item, index) => {
+                return item != del;
+            });
+            userSpecialInfo.keywordhisList = this.keywordhisList;
+            wx.setStorageSync(USER_OPERATE_INFO, userSpecialInfo);
+        },
+        selPeoBadgeFn(event){
+            this.$invoke('search', 'setSearchInputFn', event.target.dataset.peoBadge);
+        },
+        trJobListFn(event){//显示职位
+            this.isShowJobList = true;
+            this.isShowCorpList = false;
+            this.isShowCityName = false;
+        },
+        trCorpListFn(event){//显示公司
+            this.isShowCorpList = true;
+            this.isShowJobList = false;
+            this.isShowCityName = false;
+        },
+        bindRegionChange(event){
+            this.areaidStatus = false;
+            this.indexRegion = event.detail.value;
+            this.city = this.areaid[this.indexRegion];  //???
+            this.refreshListData();
+        },
+        bindIndustryChange(event){
+            this.industryidStatus = false;
+            this.indexIndustry = event.detail.value;
+            this.refreshListData();
+        },
+        bindPublicChange(event){
+
+            this.publicdateStatus = false;
+            this.indexPublic = event.detail.value;
+            this.refreshListData();
+        },
+        bindNatureChange(event){
+            this.natureStatus = false;
+            this.indexNature = event.detail.value;
+            this.refreshListData();
+        }
+    }
+
+    /**
+     * 页面上拉触底事件的处理函数
+     */
+    onReachBottom(event) {
+        let that = this;
+        that.showLoading = true;
+        if(that.isShowJobList) {
+            // console.log(that.totalJobPage + "===" + that.currentPage);
+            //判断总页数是否大于翻页数
+            if ((that.totalJobPage) > that.currentPage) {
+                //防止重复加载
+                if (that.preventRepeatReuqest) {
+                return true;
+                }
+                that.preventRepeatReuqest = true;
+                that.currentPage++;
+                that.doPosiSearch(that.keyword, that.currentPage);
+                that.preventRepeatReuqest = false;
+            } else {
+                that.showLoading = false;
+            }
+        }
+        if(that.isShowCorpList) {
+            // console.log(that.totalCorpPage + "===" + that.currentPage);
+            //判断总页数是否大于翻页数
+            if ((that.totalCorpPage) > that.currentPage) {
+                //防止重复加载
+                if (that.preventRepeatReuqest) {
+                return true;
+                }
+                that.preventRepeatReuqest = true;
+                that.currentPage++;
+                that.doCorpSearch(that.keyword, that.currentPage);
+                that.preventRepeatReuqest = false;
+            } else {
+                that.showLoading = false;
+            }
+        }
+
+    }
+    //系统简历
+    async getPinfoList(page,reset) {
+        //参数page:当前页,参数preset是否刷新页面（操作上拉刷新）
+        const that = this;
+        const json = await api.getPinfoList({
+            query: {
+                head: {
+                    "transcode": "H0015",
+                    "type": "h"
+                },
+                data: {
+                    "token": that.token,
+                    "tokenKey": that.tokenKey,
+                    "querytype":'2',
+                    "page":page.toString(),
+                    "salary":'',
+                    "edu":'',
+                    "keyword":'',
+                    "workyears":'',
+                    "city":'',
+                    "jobid":that.jobid
+                }
+            }
+        })
+        if (json.data.returnCode == "AAAAAAA") {
+            that.joblistStatus = true;
+            var joblistArr = json.data.list ;
+
+            var joblist = joblistArr.map(function(obj,index) {
+              obj.head=makePy(obj.username);//添加id属性
+              return obj;
+            });
+
+
+
+            this.joblistData = reset ? joblist:that.joblistData.concat(joblist)
+            that.totalPage =parseInt(json.data.num/ 10);
+            if(that.joblistData.length==0){
+                that.joblistStatus = false;
+            }
+        } else {
+            that.joblistStatus = false;
+            wx.showToast({
+              title: json.data.returnMsg,
+              icon: "none",
+              duration: 1000, //提示的延迟时间，单位毫秒，默认：1500
+              mask: false,  //是否显示透明蒙层，防止触摸穿透，默认：false
+              success: function () {
+
+              },
+              fail: function () { },  //接口调用失败的回调函数
+              complete: function () { } //接口调用结束的回调函数
+          })
+        }
+        that.$apply();
+    }
+    //职位搜索
+    async doPosiSearch(keyword, currentPage) {
+        const that = this;
+        let region_name = ''
+        if (that.city == '全国' || that.areaid[that.indexRegion] == '全部' ) {
+            region_name = '';
+        } else {
+            region_name = that.areaid[that.indexRegion] || that.city;
+        }
+        const json = await api.getCompanyjob({
+        query: {
+            head: {
+                "transcode": "Q0001",
+                "type": "h"
+            },
+            data: {
+                pageNo: currentPage || "1",
+                keyword: that.keyword,
+                areaid: region_name,
+                industryid: that.industryid[that.indexIndustry] || "",
+                publicdate: that.publicdate[that.indexPublic] || ""
+            }
+        }
+        })
+        if (json.data.returnCode == "AAAAAAA") {
+            if (json.data.data.num == 0) {
+                // tip.toast('搜索结果为空');
+                that.isJobEmpty = true;  //暂无数据
+                that.jobNum = 0;
+            } else {
+                let userSpecialInfo = wx.getStorageSync(USER_OPERATE_INFO) || {};
+                if(that.keywordhisList.indexOf(keyword) == -1) {
+                    that.keywordhisList.push(keyword);
+                    userSpecialInfo.keywordhisList =  that.keywordhisList;
+                    wx.setStorageSync(USER_OPERATE_INFO, userSpecialInfo);
+                }
+                that.hunterjobList = [...that.hunterjobList, ...json.data.data.list];
+                that.jobNum = json.data.data.num;
+                that.totalJobPage =parseInt(json.data.data.num / 10);
+                that.isJobEmpty = false;
+                // console.log("查找职位", "isShowCorpList", that.isShowCorpList, "isShowJobList", that.isShowJobList, "isJobEmpty", that.isJobEmpty, "isCorpEmpty", that.isCorpEmpty);
+            }
+            that.$apply();
+            that.showLoading = false;
+        } else {
+            tip.error(json.data.returnMsg);
+        }
+    }
+
+    //查找公司(已登录)
+    async doCorpSearch(keyword, currentPage) {
+        const that = this;
+        let region_name = '';
+        if (that.city == '全国' || that.areaid[that.indexRegion] == '全部' ) {
+            region_name = '';
+        } else {
+            region_name = that.areaid[that.indexRegion] || that.city;
+        }
+        const json = await api.searchCorp({
+        query: {
+            head: {
+                "transcode": "I0002",
+                "type": "h"
+            },
+            data: {
+                token: that.loginInfo.token,
+                tokenKey: that.loginInfo.tokenKey,
+                p: currentPage || "1",
+                keywork: that.keyword,
+                city: region_name,
+                industry: that.industryid[that.indexIndustry] || "",
+                nature: that.nature[that.indexNature] || ""
+            }
+        }
+        })
+        if (json.data.returnCode == "AAAAAAA") {
+            if (json.data.data.num == 0) {
+                // tip.toast('搜索结果为空');
+                that.isCorpEmpty = true;  //暂无数据
+                that.corpNum = 0;
+            } else {
+                let userSpecialInfo = wx.getStorageSync(USER_OPERATE_INFO) || {};
+                if(that.keywordhisList.indexOf(keyword) == -1) {
+                    that.keywordhisList.push(keyword);
+                    userSpecialInfo.keywordhisList =  that.keywordhisList;
+                    wx.setStorageSync(USER_OPERATE_INFO, userSpecialInfo);
+                }
+                that.corplist = [...that.corplist, ...json.data.data.list];
+                that.corpNum = json.data.data.num;
+                that.totalCorpPage =parseInt(json.data.data.num / 10);
+                that.isCorpEmpty = false;
+                // console.log("查找公司", "isShowCorpList", that.isShowCorpList, "isShowJobList", that.isShowJobList, "isCorpEmpty", that.isCorpEmpty, "isJobEmpty", that.isJobEmpty);
+            }
+            that.$apply();
+            that.showLoading = false;
+        } else {
+            tip.error(json.data.returnMsg);
+        }
+    }
+
+    //获取数据字典
+    async getDictData(groupcode) {
+        const json = await api.getDictData({
+        query: {
+            head: {
+                "transcode": "DC001",
+                "type": "h"
+            },
+            data: {
+                "groupcode": groupcode,
+                "selAll": "true"
+            }
+        }
+        })
+        return json;
+    }
+
+    //刷新数据
+    refreshListData() {
+        const that = this;
+        const keyword = that.keyword;
+        that.isShowJobList&&that.doPosiSearch(keyword);
+        that.isShowCorpList&&that.doCorpSearch(keyword);
+        that.hunterjobList = [];
+        that.corplist = [];
+    }
+}
+</script>

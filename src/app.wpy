@@ -1,0 +1,168 @@
+<script>
+import wepy from 'wepy'
+import 'wepy-async-function'
+
+import { setStore } from 'wepy-redux'
+import configStore from './store'
+
+const store = configStore()
+setStore(store)
+
+export default class extends wepy.app {
+  config = {
+    pages: [
+      'transit',
+      'personpages/home/home',
+      'personpages/home/url',
+      'personpages/personal/delivery',
+      'personpages/login/forgot',
+      'personpages/personal/base_edit',
+      'personpages/index/index',
+      'personpages/personal/import_resume',
+      'personpages/personal/resume_list',
+      'personpages/login/login',
+      'personpages/personal/personal',
+      'personpages/login/regist',
+      'personpages/personal/resume',
+      'personpages/personal/certificate',
+      'personpages/personal/edu_exper',
+      'personpages/personal/project_exper',
+      'personpages/personal/work_exper',
+      'personpages/personal/job_want',
+      'personpages/personal/base_info',
+      'personpages/search/search',
+      'personpages/personal/collection',
+      'personpages/home/homeview',
+      'personpages/corporation/corporation',
+      'personpages/corporation/corpview',
+      'personpages/salary/salary',
+      // 'companypages/chat/call',
+      // 'companypages/chat/index',
+      // 'companypages/chat/call',
+      'companypages/joblist/joblist',
+      'companypages/recommend/recommend',
+      'companypages/recommend/jobseeker',
+      'companypages/recommend/interview',
+      'companypages/login/login',
+      'companypages/login/forgot',
+      'companypages/login/regist',
+
+      'companypages/personal/personal',
+      'companypages/delivery/delivery',
+      'companypages/personal/release_posi',
+      'companypages/personal/com_info',
+      'companypages/personal/collection',
+      'companypages/personal/posi_manage',
+      'companypages/personal/base_edit',
+      'companypages/personal/resume',
+      'companypages/search/search',
+      'companypages/personal/download',
+      'companypages/personal/com_baseinfo',
+      'companypages/jobdetails/jobdetails',
+      'companypages/agreeinterview/agreeinterview',
+      'companypages/personal/viewhomepage',
+      'companypages/personal/welfare',
+    ],
+    window: {
+      backgroundTextStyle: 'light',
+      navigationBarBackgroundColor: '#fff',
+      navigationBarTitleText: 'WeChat',
+      navigationBarTextStyle: 'black'
+    },
+    // tabBar: {
+    //   "color": "#a0a0a0",
+    //   "selectedColor": "#FFA315",
+    //   "backgroundColor": "#ffffff",
+    //   list: [
+    //     // {
+    //     //     'pagePath': 'companypages/joblist/joblist',
+    //     //     'iconPath': 'images/icons/main.png',
+    //     //     'selectedIconPath': 'images/icons/main_selected.png',
+    //     //     'text':'主页'
+    //     //   }, {
+    //     //     'pagePath': 'companypages/search/search',
+    //     //     'iconPath': 'images/icons/search.png',
+    //     //     'selectedIconPath': 'images/icons/search_selected.png',
+    //     //     'text':'搜索'
+    //     //   },{
+    //     //     'pagePath': 'companypages/delivery/delivery',
+    //     //     'iconPath': 'images/icons/news.png',
+    //     //     'selectedIconPath': 'images/icons/news_selected.png',
+    //     //     'text':'投递动态'
+    //     //   }, {
+    //     //     'pagePath': 'companypages/personal/personal',
+    //     //     'iconPath': 'images/icons/my.png',
+    //     //     'selectedIconPath': 'images/icons/my_selected.png',
+    //     //     'text':'我的'
+    //     //   }
+    //     {
+    //       'pagePath': 'personpages/home/home',
+    //       'text': '主页',
+    //       'iconPath': 'images/icons/home.png',
+    //       'selectedIconPath': 'images/icons/home_hl.png'
+    //     }, {
+    //       'pagePath': 'personpages/corporation/corporation',
+    //       'text': '公司',
+    //       'iconPath': 'images/icons/corp.png',
+    //       'selectedIconPath': 'images/icons/corp_hl.png'
+    //     },{
+    //       'pagePath': 'personpages/personal/personal',
+    //       'text': '我的',
+    //       'iconPath': 'images/icons/pers.png',
+    //       'selectedIconPath': 'images/icons/pers_hl.png'
+    //     }
+    //   ]
+    // },
+    "navigateToMiniProgramAppIdList": [
+      "wxd48d26a8a3f6938f"
+    ]
+  }
+
+  globalData = {
+    userInfo: null
+  }
+
+  constructor () {
+    super()
+    this.use('requestfix')
+  }
+
+  onLaunch() {
+    this.testAsync()
+    this.globalData.systemInfo = wx.getSystemInfoSync();
+    // wx.hideTabBar({
+    //   fail: function() {
+    //     setTimeout(function() { // 做了个延时重试一次，作为保底。
+    //       wx.hideTabBar()
+    //     }, 500)
+    //   }
+    // });
+  }
+
+  sleep (s) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve('promise resolved')
+      }, s * 1000)
+    })
+  }
+
+  async testAsync () {
+    const data = await this.sleep(3)
+    console.log(data)
+  }
+
+  getUserInfo(cb) {
+    const that = this
+    if (this.globalData.userInfo) {
+      return this.globalData.userInfo
+    }
+    wepy.getUserInfo({
+      success (res) {
+        that.globalData.userInfo = res.userInfo
+        cb && cb(res.userInfo)
+      }
+    })
+  }
+}
+</script>

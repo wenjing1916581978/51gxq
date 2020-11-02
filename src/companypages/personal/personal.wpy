@@ -1,0 +1,437 @@
+<style lang='scss'>
+    page {
+        background-color: #F0F1F2;
+        .personal-container {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            .personal-info {
+                background-color: white;
+                margin: 22rpx 0;
+                margin-bottom: 0rpx;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                padding: 22rpx 28rpx;
+                image {
+                    width: 80rpx;
+                    height: 80rpx;
+                }
+                .name-intro {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: space-between;
+                    margin-left: 20rpx;
+                    align-items:center;
+                    width:100%;
+                    .name {
+                        font-size: 36rpx;
+                        color: #333333;
+                        font-weight: 600;
+                    }
+                    .intro {
+                        margin-top: 6rpx;
+                        font-size: 26rpx;
+                        color: #888888;
+                    }
+                    .intro2 {
+                        margin-top: 6rpx;
+                        font-size: 32rpx;
+                        color: #888888;
+                    }
+                    .arrow_right {
+                        width: 10rpx;
+                        height: 16rpx;
+                    }
+                    .edit_icon {
+                        width: 68rpx;
+                        height: 68rpx;
+                    }
+                }
+            }
+            .my-function {
+                background-color: white;
+                display: flex;
+                flex-direction: column;
+                padding: 0 28rpx;
+            }
+            .fun-line {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                padding: 22rpx 0;
+                border-bottom: 1rpx solid #F1F1F1;
+                .img-title {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    image {
+                        width: 36rpx;
+                        height: 36rpx;
+                        margin-right: 20rpx;
+                    }
+                    text {
+                        color: rgba(53, 53, 53, 1);
+                        font-size: 30rpx;
+                    }
+                }
+                .percent-arrow {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    view {
+                        width: 100rpx;
+                        height: 28rpx;
+                        font-size: 30rpx;
+                        text-align: center;
+                        line-height: 30rpx;
+                        margin-right: 20rpx;
+                    }
+                    image {
+                        width: 10rpx;
+                        height: 16rpx;
+                    }
+                }
+            }
+            .exit {
+                color: #353535;
+                font-size: 30rpx;
+                line-height: 82rpx;
+                background: white;
+                text-align: center;
+                line-height: 82rpx;
+                margin-top: 22rpx;
+            }
+            .alert-container {
+                position: fixed;
+                width: 100%;
+                height: 100vh;
+                background: black;
+                opacity: 0.5;
+            }
+            .alert-box{
+                width: 560rpx;
+                height: 290rpx;
+                background: white;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                margin-left: -280rpx;
+                border-radius: 20rpx;
+                z-index: 9999;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                .sure {
+                    width: 100%;
+                    height: 190rpx;
+                    font-size: 36rpx;
+                    line-height: 190rpx;
+                    border-bottom: 1rpx solid #e5e5e5;
+                    text-align: center;
+                }
+                .yesno {
+                    display: flex;
+                    flex-direction: row;
+                    text-align: center;
+                    line-height: 100rpx;
+                    .no {
+                        width: 280rpx;
+                        color: #b2b2b2;
+                        border-right: 1rpx solid #e5e5e5;
+                    }
+                    .yes {
+                        width: 280rpx;
+                        color: #F16049;
+                    }
+                }
+            }
+        }
+    }
+
+</style>
+
+<template>
+  <view class="personal-container">
+      <view class="personal-info">
+            <image mode="aspectFill" src="{{headimg}}" wx:if="{{headimgStatus}}"></image>
+            <image mode="aspectFill" src="/images/icons/upload_head.png" wx:else="{{headimgStatus}}"></image>
+            <view class="name-intro" wx:if="{{loginStatus}}" @tap.stop="goBaseEdit">
+                <view class="name-intro-bd">
+                    <view class="name">{{username}}</view>
+                    <view class="intro">{{jobname}}</view>
+                </view>
+                <image src="/images/icons/edit_icon.png" class="edit_icon"></image>
+            </view>
+            <view class="name-intro" wx:else="{{loginStatus}}">
+                <view class="intro2" @tap="goLoginPage"><text>登录</text>  / <text>注册</text> </view>
+            </view>
+      </view>
+      <view class="my-function" style="margin-bottom: 22rpx;">
+          <view class="fun-line" @tap="goResumeList" style="border: none;border-top: 1rpx solid #F1F1F1;">
+            <view class="img-title">
+                <text>剩余简历下载次数：</text>
+                <text style="color: #F16049;">{{downcount}}</text>
+            </view>
+        </view>
+    </view>
+      <view class="my-function">
+          <view class="fun-line" @tap="goPosiManage">
+            <view class="img-title">
+                <image src="/images/icons/resume.png"></image>
+                <text>职位管理</text>
+            </view>
+            <view class="percent-arrow">
+                <image src="/images/icons/arrow_right.png"></image>
+            </view>
+        </view>
+        <view class="fun-line" @tap="goCollectionPage">
+            <view class="img-title">
+                <image src="/images/icons/collection.png"></image>
+                <text>我的收藏</text>
+            </view>
+            <view class="percent-arrow">
+                <view></view>
+                <image src="/images/icons/arrow_right.png"></image>
+            </view>
+        </view>
+        <view class="fun-line" @tap="goDownloadPage">
+            <view class="img-title">
+                <image src="/images/icons/resume_download_icon.png"></image>
+                <text>已下载的简历</text>
+            </view>
+            <view class="percent-arrow">
+                <view></view>
+                <image src="/images/icons/arrow_right.png"></image>
+            </view>
+        </view>
+        <view class="fun-line" @tap="goComInfo">
+            <view class="img-title">
+                <image src="/images/icons/homepage_setting_icon.png"></image>
+                <text>公司信息设置</text>
+            </view>
+            <view class="percent-arrow">
+                <view></view>
+                <image src="/images/icons/arrow_right.png"></image>
+            </view>
+        </view>
+        <view class="fun-line" @tap="toggle">
+            <view class="img-title">
+                <image src="/images/icons/switch_icon_geren.png"></image>
+                <text>切换至个人版</text>
+            </view>
+            <view class="percent-arrow">
+                <view></view>
+                <image src="/images/icons/arrow_right.png"></image>
+            </view>
+        </view>
+      </view>
+      <view class="exit" @tap="logout" wx:if="{{loginStatus}}">
+          退出登录
+      </view>
+    <view class="alert-container" wx:if = "{{showbox}}"></view>
+    <view class="alert-box" wx:if = "{{showbox}}">
+        <view class="sure">确认退出登录？</view>
+        <view class="yesno">
+            <view class="no" @tap="cancel">取消</view>
+            <view class="yes" @tap="yes">确定</view>
+        </view>
+    </view>
+    <tabbar current="2"></tabbar>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import api from '@/api/companyapi';
+import tip from '../../utils/tip';
+import Tabbar from '@/components/tabbar-c';
+import {
+    LOGIN_INFO
+} from '../../utils/constants';
+const utils = require('../../utils/utils');
+
+
+export default class PersPage extends wepy.page {
+    config = {
+        navigationBarTitleText: '我的',
+        usingComponents: {
+            "i-tab-bar": "../../iview/tab-bar/index",
+            "i-tab-bar-item": "../../iview/tab-bar-item/index"
+        }
+    }
+    data = {
+      // percentage: '0%',
+      username:'暂无',
+      headimg:'',
+      headimgStatus:false,
+      jobname:'',
+      token:'',
+      tokenKey:'',
+      have: true,
+      resumeid: '',
+      showbox: false,
+      loginStatus: false,
+      tempPortraitFilePath: '',
+      downcount:0
+    }
+    components = {
+        tabbar:Tabbar
+    };
+    onLoad() {
+      wepy.$instance.globalData.value=''
+
+    }
+    // 转发分享
+    onShareAppMessage() {
+        var pages = getCurrentPages()    //获取加载的页面
+        var currentPage = pages[pages.length-1]    //获取当前页面的对象
+        var url = currentPage.route    //当前页面url
+        return {
+        title: '金融职业机会尽在51高芯圈',
+        desc: '51高芯圈丨金融人才求职招聘',
+        path: `/${url}`
+        }
+    }
+    onShow(){
+        // 获取登录信息
+      const that = this;
+      wx.getStorage({
+          key: 'loginDataC',
+          success: function(res) {
+              console.log(res)
+              that.loginStatus = true;
+              that.headimgStatus = true;
+              that.token = res.data.token;
+              that.tokenKey = res.data.tokenKey;
+              that.headimg = res.data.headimg;
+              that.username = res.data.username;
+              that.$apply();
+              that.getViewContract()
+          },
+          fail: function(res) {
+            // 清空本地信息
+            wx.removeStorage('loginDataC')
+            that.have = false;
+            that.loginStatus = false;
+          }
+      })
+      that.$apply();
+    }
+    methods = {
+        toggle(){
+            wx.setStorageSync('type', '0')
+            wx.reLaunch({url:'/personpages/home/home'})
+        //   wx.navigateToMiniProgram({
+        //     appId: 'wxd48d26a8a3f6938f',
+        //     path: 'pages/home/home',
+        //     extraData: {},
+        //     envVersion: 'trail',
+        //     success(res) {
+        //       // 打开成功
+        //     },fail(){
+
+        //     }
+        //   })
+        },
+        goPosiManage () {// 跳转职位管理
+            // 未登录跳转登录页
+            utils.goLogin()
+            if(this.loginStatus){
+                wx.navigateTo({
+                    url: `posi_manage`
+                })
+            }
+        },
+
+
+        goCollectionPage () {// 跳转收藏的人才
+            // 未登录跳转登录页
+            utils.goLogin()
+            if(this.loginStatus){
+                wx.navigateTo({
+                    url: `collection`
+                })
+            }
+        },
+        goDownloadPage () {// 跳转已下载的简历
+            // 未登录跳转登录页
+            utils.goLogin()
+            if(this.loginStatus){
+                wx.navigateTo({
+                    url: `download`
+                })
+            }
+        },
+        goComInfo(){// 跳转公司主页设置
+            // 未登录跳转登录页
+            utils.goLogin()
+            if(this.loginStatus){
+                wx.navigateTo({
+                    url: `com_info`
+                })
+            }
+        },
+        logout () {// 退出登录
+            this.showbox = true;
+        },
+        cancel () {// 取消
+            this.showbox = false;
+        },
+        yes () {// 确定
+            // 清空本地信息
+            wx.removeStorage({
+                key: 'loginDataC',
+                success (res) {
+                    // 跳转登录页
+                    wx.navigateTo({
+                        url: '/companypages/login/login'
+                    })
+                }
+            })
+
+        },
+        goLoginPage () {// 跳转登录页
+            wx.navigateTo({
+                url: `/companypages/login/login`
+            })
+        },
+        goBaseEdit() { //跳转个人信息编辑
+            // 未登录跳转登录页
+            utils.goLogin()
+            wx.navigateTo({
+                url: `base_edit`
+            })
+        }
+
+    };
+    onHide(){
+        this.showbox = false;
+        this.headimgStatus = false;
+    }
+
+
+    async getViewContract() {
+        var  that=this
+        const json = await api.getViewContract({
+        query: {
+                head: {
+                    "transcode": "JZ00008",
+                    "type": "h"
+                },
+                data: {
+                    "token": that.token,
+                    "tokenKey": that.tokenKey,
+                }
+            }
+        })
+        if (json.data.returnCode == "AAAAAAA") {
+            that.downcount=json.data.contract_count
+            that.$apply()
+        }else{
+
+        }
+    }
+}
+</script>

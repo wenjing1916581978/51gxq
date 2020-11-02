@@ -1,0 +1,127 @@
+<style lang="less">
+.select_box{
+    position:relative;
+    z-index:2;
+  }
+  .select{
+    position:relative;
+    z-index:2;
+    height: 80rpx;
+    border-radius: 200rpx;
+    background-color: rgba(242, 242, 242, 1);
+    padding:0 32rpx;
+    &:after{
+      content:'';
+      display:block;
+      height:0;
+      clear:both;
+    }
+  }
+  .select_text{
+    dispaly:inline-block;
+    line-height:80rpx;
+    float:left;
+    font-size:32rpx;
+    color:#333333;
+  }
+  .select_num{
+    dispaly:inline-block;
+    line-height:40rpx;
+    width:80rpx;
+    background: linear-gradient(to right,#FF8960,#FF62A5);
+    border-radius:200rpx;
+    margin:20rpx 10rpx;
+    text-align:center;
+    font-size:30rpx;
+    float:left;
+    color:#ffffff;
+  }
+  .btn-img{
+    float:right;
+    margin:30rpx 0;
+    image{
+    height:20rpx;
+    width:32rpx;
+      display:block;
+    }
+  }
+  .option_box{
+    position:absolute;
+    top:40rpx;
+    width:100%;
+    background:#ffffff;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+    padding:40rpx 32rpx 0;
+    box-sizing:border-box;
+    .option{
+      line-height:80rpx;
+      font-size:28rpx;
+      &:after{
+        content:'';
+        display:block;
+        height:0;
+        clear:both;
+      }
+      .option-text{
+        float:left;
+      }
+      .option-num{
+        float:right;
+        color:#A0A0A0;
+      }
+      .option-text-selected{
+        color:#FF6F6F
+      }
+    }
+  }
+</style>
+<template>
+  <view class='select_box'>
+    <view class='select' @tap='selectTap'>
+      <view class='select_text'>{{selectData[sindex].value}}</view>
+      <!--<view class='select_num'>4</view>-->
+      <view class="btn-img">
+        <image mode="widthFix" src="../images/icons/arrow-down.png" wx:if="{{!show}}"></image>
+        <image mode="widthFix" src="../images/icons/arrow-up.png" wx:else="{{!show}}"></image>
+      </view>
+    </view>
+    <view class='option_box' wx:if="{{show}}" style='height:{{show?selectData.length*80+40:0}}rpx;'>
+      <view class='option' wx:for='{{selectData}}' wx:key='this' data-index='{{index}}' index="index" @tap='optionTap' data-type="{{item.type}}">
+        <view class="option-text {{sindex==index?'option-text-selected':''}}" >{{item.value}}</view>
+        <!--<view class="option-num">5</view>-->
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+export default class Select extends wepy.component {
+  props={
+   selectData:{
+      type:Array,  //必须要指定类型
+    }
+  };
+  data={
+    array:[],
+    show:false,//控制下拉列表的显示隐藏，false隐藏、true显示
+    sindex:0//选择的下拉列表下标
+  };
+  methods = {
+     // 点击下拉显示框
+     selectTap(){
+         this.show=!this.show
+         this.$apply();
+     },
+     optionTap(e){
+      var type=e.currentTarget.dataset.type;
+      var Index=e.currentTarget.dataset.index;//获取点击的下拉列表的下标
+      this.sindex=Index;
+      this.show=!this.show
+      this.$emit('childFn', type)
+      this.$apply();
+     }
+  };
+  onLoad(){
+  }
+}
+</script>

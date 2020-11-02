@@ -1,0 +1,389 @@
+<style lang='scss'>
+.tab-h{
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: #fcfcfc;
+  font-size: 16px;
+  white-space: nowrap;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 99;
+  text-align:center;
+  border-bottom:2rpx solid rgba(0, 0, 0, 0.2);
+}
+.tab-item{
+  margin:0 36rpx;
+  display: inline-block;
+  color:#A0A0A0;
+  padding-bottom:28rpx;
+  position:relative;
+  .reli_num{
+    top: -0;
+    right:-42rpx;
+    position:absolute;
+    padding:0 10rpx;
+    background:#F16049;
+    color:#ffffff;
+    font-size:24rpx;
+    line-height:30rpx;
+    border-radius:20rpx;
+    text-align:center;
+    min-width:28rpx
+  }
+}
+.tab-item.active{
+  color: #333333;
+  position: relative;
+}
+.tab-item.active:after{
+  content: "";
+  display: block;
+  height: 6rpx;
+  width: 80rpx;
+  background: linear-gradient(to right,#F16049,#FFBD00);
+  position: absolute;
+  bottom: 6rpx;
+  left: 0;
+  right:0;
+  margin:auto;
+}
+.tab-content{margin-top: 86rpx;
+}
+.scoll-h{
+  height: 100%;
+  -webkit-overflow-scrolling : touch;
+}
+.refresh{
+  line-height:80rpx;
+  text-align:center;
+  font-size:24rpx;
+  color:#aoaoao;
+  background:#f0f1f2;
+  image{
+    width:40rpx;
+    height:40rpx;
+    display:inline-block;
+    vertical-align:middle;
+    margin-right:10rpx;
+
+  }
+}
+</style>
+
+<template>
+  <view>
+    <!--智能推荐 -->
+      <scroll-view scroll-x="true" class="tab-h">
+          <view class="tab-item {{currentTab==0?'active':''}}"  data-current="0" @tap="swichNav">智能推荐
+            <view class="reli_num" wx:if="{{recnum&&recnum!==undefined}}">{{recnum}}</view>
+            <view class="reli_num" wx:if="{{recnum>99}}">99+</view>
+          </view>
+          <view class="tab-item {{currentTab==1?'active':''}}" data-current="1" @tap="swichNav">系统简历</view>
+      </scroll-view>
+      <swiper class="tab-content" current="{{currentTab}}" duration="300" @change="switchTab" style="height:{{winHeight-80}}rpx">
+          <swiper-item>
+              <scroll-view scroll-y="true" class="scoll-h" bindscrolltolower="onReclistReachBottom" bindscrolltoupper="PullDownRefresh">
+                <block wx:if="{{reclistStatus}}">
+                  <view class="refresh" wx:if="{{refreshLoading}}"><image mode="widthFix" src="../../images/icons/loadding.gif"></image>页面刷新中……</view>
+                  <repeat for="{{reclistData}}" key="index" index="index" item="item">
+                    <repeople :item.sync="item" :username.sync="item.username" :lastposition.sync="item.lastposition" :lastcompany.sync="item.lastcompany" :recommenddate.sync="item.recommenddate" :collectionid.sync="item.collectionid" ></repeople>
+                  </repeat>
+                  <!--加载更多时动画-->
+                  <bottomloadmore :syncShow.sync="showLoading1" message="正在加载"></bottomloadmore>
+                </block>
+                <block wx:else>
+                  <defaultpage img="/images/icons/no_delivery.png" text="暂未匹配到合适的简历 查看系统简历，或进行简历搜索" ></defaultpage>
+                </block>
+              </scroll-view>
+          </swiper-item>
+          <swiper-item>
+              <scroll-view scroll-y="true" class="scoll-h" bindscrolltoupper="PullDownRefresh" bindscrolltolower="onJoblistReachBottom">
+              <block wx:if="{{joblistStatus}}">
+                  <repeat for="{{joblistData}}" key="index" index="index" item="item">
+                    <view class="refresh" wx:if="{{refreshLoading}}"><image mode="widthFix" src="../../images/icons/loadding.gif"></image>页面刷新中……</view>
+                    <repeople :item.sync="item" :lastposition.sync="item.titlenow" :lastcompany.sync="item.companynow"  :interviewtime.sync="item.interviewtime" :recommenddate.sync="item.updatedate" :username.sync="item.username"></repeople>
+                  </repeat>
+                  <!--加载更多时动画-->
+                  <bottomloadmore :syncShow.sync="showLoading2" message="正在加载"></bottomloadmore>
+                </block>
+                <block wx:else>
+                  <defaultpage img="/images/icons/no_delivery.png" text="暂未匹配到合适的简历 查看系统简历，或进行简历搜索"  ></defaultpage>
+                </block>
+              </scroll-view>
+          </swiper-item>
+      </swiper>
+    </view>
+</template>
+
+<script>
+
+import wepy from 'wepy';
+import api from '@/api/companyapi';
+import BottomLoadMore from "../../components/bottomloadmore";
+import Repeople from './repeople';
+import Select from '../../components/select';
+import Defaultpage from '../../components/defaultpage';
+import {makePy} from '../../utils/pinying'
+import utils from '../../utils/utils'
+import tip from '../../utils/tip'
+
+
+export default class DeliveryPage extends wepy.page {
+
+
+  methods = {
+    // 滚动切换标签样式
+    switchTab(e){
+        this.currentTab = e.detail.current
+        this.refreshLoading=false
+        this.$apply()
+    },
+    // 点击标题切换当前页时改变样式
+    swichNav(e){
+        var cur=e.target.dataset.current;
+        if(this.currentTaB==cur){return false;}
+        else{
+            this.currentTab= cur
+            if(this.joblistData.length==0){
+              this.refreshLoading=false
+              this.$apply()
+              this.getPinfoList(this.joblistPage,true)
+            }
+        }
+    }
+  };
+  config = {
+      navigationBarTitleText: '',
+      enablePullDownRefresh: false
+  }
+  data = {
+      reclistData: [],
+      joblistData: [],
+      reclistStatus: false,
+      joblistStatus: false,
+      showLoading1: false,
+      showLoading2: false,
+      refreshLoading:false,
+      reclistPage:1,
+      joblistPage:1,
+      reclisttotalPage:0,
+      joblisttotalPage:0,
+      showStatus: false,
+      token:'',
+      tokenKey:'',
+      winHeight:"",//窗口高度
+      currentTab:0, //预设当前项的值
+      recommend:0,
+      jobid:'',
+      warningWord:"",
+      recnum:0,
+      start:0,
+      size:0,
+  };
+    components = {
+        bottomloadmore: BottomLoadMore,
+        repeople:Repeople,
+        defaultpage:Defaultpage,
+        select:Select
+    };
+    onLoad(options) {
+      this.jobid=options.jobid?options.jobid:'';
+      this.recommend=options.recommend
+      this.interview=options.interview
+      this.recnum=options.recnum=='undefined'?0:1
+      this.size=options.recnum=='undefined'?0:1
+      this.reclisttotalPage=Math.ceil(options.recnum/ 10)
+      this.$apply();
+      wx.setNavigationBarTitle({
+        title: options.jobname
+      })
+      var jobId=options.jobid;
+        // 获取登录信息
+        const that = this;
+        wx.getStorage({
+            key: 'loginDataC',
+            success: function(res) {
+                that.token = res.data.token;
+                that.tokenKey = res.data.tokenKey;
+                that.$apply();
+                // 获取职能推荐简历列表
+                that.getReclist(that.start,that.size,true)
+            },fail:function(){
+              utils.toLogin();
+            }
+        })
+        //  高度自适应
+        wepy.getSystemInfo( {
+            success: function( res ) {
+                var clientHeight=res.windowHeight,
+                    clientWidth=res.windowWidth,
+                    rpxR=750/clientWidth;
+                var  calc=clientHeight*rpxR;
+                that.winHeight = calc
+            }
+        });
+    }
+
+    //获取推荐职位列表
+    async getReclist(start,size,reset) {
+        wx.showLoading({
+            title: '加载中',
+        })
+        const that = this;
+        const json = await api.getReclist({
+            query: {
+                head: {
+                    "transcode": "R00002",
+                    "type": "h"
+                },
+                data: {
+                    "token": that.token,
+                    "tokenKey": that.tokenKey,
+                    "start":start.toString(),
+                    "size":size.toString(),
+                    "jobid":that.jobid
+                }
+            }
+        }).then(json=>{
+          that.reclistStatus = true;
+          var reclistArr = json.data.data.reclist ;
+
+          var reclist = reclistArr.map(function(obj,index) {
+            obj.head=makePy(obj.username);//添加id属性
+            obj.age=obj.age?utils.judge(obj.age,'岁'):obj.age
+            obj.workyears=obj.workyears?(obj.workyears=="应届毕业生"?obj.workyears:utils.judge(obj.workyears,'年')):obj.workyears
+            return obj;
+          });
+          that.reclistData = reset ? reclist:that.reclistData.concat(reclist)
+          //that.totalPage =Math.ceil(json.data.datanum/ 10);
+          if(that.reclistData.length==0){
+              that.reclistStatus = false;
+              that.warningWord = "暂未查到更多信息";
+          }
+        }).catch(json=>{
+          that.reclistStatus = false;
+          that.warningWord = json.data.returnMsg;
+        })
+        if(that.refreshLoading){
+          that.refreshLoading=false
+        }
+        wx.hideLoading()
+        that.$apply();
+    }
+    //系统简历
+    async getPinfoList(page,reset) {
+        //参数page:当前页,参数preset是否刷新页面（操作上拉刷新）
+        const that = this;
+        const json = await api.getPinfoList({
+            query: {
+                head: {
+                    "transcode": "H0015",
+                    "type": "h"
+                },
+                data: {
+                    "token": that.token,
+                    "tokenKey": that.tokenKey,
+                    "querytype":'2',
+                    "page":page.toString(),
+                    "salary":'',
+                    "edu":'',
+                    "keyword":'',
+                    "workyears":'',
+                    "city":'',
+                    "jobid":that.jobid
+                }
+            }
+        }).then(json=>{
+          that.joblistStatus = true;
+          var joblistArr = json.data.list ;
+          var joblist = joblistArr.map(function(obj,index) {
+            obj.head=makePy(obj.username);//添加id属性
+            obj.age=obj.age?utils.judge(obj.age,'岁'):obj.age
+            obj.workyears=obj.workyears?(obj.workyears=="应届毕业生"?obj.workyears:utils.judge(obj.workyears,'年')):obj.workyears
+            obj.sex=obj.sex=='男'?'1':'0';
+            obj.updatedate=obj.updatedate==''?'':utils.getFormat("yyyy-mm-dd",obj.updatedate);
+            return obj;
+          });
+          this.joblistData = reset ? joblist:that.joblistData.concat(joblist)
+          that.joblisttotalPage =Math.ceil(json.data.num/ 10);
+          if(that.joblistData.length==0){
+              that.joblistStatus = false;
+          }
+        }).catch(json=>{
+          that.joblistStatus = false;
+          tip.error(json.data.returnMsg)
+        })
+        if(that.refreshLoading){
+          that.refreshLoading=false
+        }
+        that.$apply();
+    }
+
+
+    /**
+     * 页面上拉触底事件的处理函数
+     */
+    onJoblistReachBottom(event) {
+        let that = this;
+        that.showLoading1 = true;
+          //判断总页数是否大于翻页数
+          if ((that.joblisttotalPage) > that.joblistPage) {
+              //防止重复加载
+              if (that.preventRepeatReuqest) {
+                return true;
+              }
+              that.preventRepeatReuqest = true;
+              that.joblistPage++;
+              that.getPinfoList(that.joblistPage,false);
+              that.preventRepeatReuqest = false;
+          } else {
+             that.showLoading2 = false;
+          }
+
+
+    }
+    onReclistReachBottom(event){
+        //let that = this;
+        //that.showLoading1 = true;
+          //判断总页数是否大于翻页数
+          //if ((that.reclisttotalPage) > that.reclistPage) {
+              //防止重复加载
+              //if (that.preventRepeatReuqest) {
+                //return true;
+              //}
+              //that.preventRepeatReuqest = true;
+              //that.reclistPage++;
+              //that.getReclist(that.reclistPage*10+1,false);
+              //that.preventRepeatReuqest = false;
+          //} else {
+            // that.showLoading1 = false;
+          //}
+
+
+    }
+    PullDownRefresh() {
+      var that=this
+      // wx.showNavigationBarLoading() //在标题栏中显示加载
+      // that.getReclist(that.start,that.size,true)
+      that.refreshLoading=true
+      that.$apply()
+      if(that.currentTab!=1){
+        that.getReclist(that.start,that.size,true)
+      }else{
+        that.joblistPage=1
+        that.$apply()
+        that.getPinfoList(that.joblistPage,true)
+      }
+
+      //模拟加载
+      // setTimeout(function()
+      // {
+      //  wx.hideNavigationBarLoading() //完成停止加载
+      //  wx.stopPullDownRefresh() //停止下拉刷新
+      // },1500);
+
+    }
+}
+</script>

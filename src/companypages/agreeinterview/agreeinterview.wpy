@@ -1,0 +1,273 @@
+<style lang='scss'>
+    view{
+      line-height:34rpx;
+    }
+    page{
+      background:#F0F1F2;
+    }
+    .box{
+      padding:0 32rpx;
+      background:#ffffff;
+      margin-bottom:20rpx;
+    }
+    .line{
+      display: -webkit-box;
+      display: -moz-box;
+      display: -ms-flexbox;
+      display: -webkit-flex;
+      font-size:28rpx;
+      height:120rpx;
+      align-items:center;
+      .line-label{
+        color:#333333 ;
+      }
+      .line-content{
+        flex:1;
+        text-align:right;
+        .select{
+          color:#A0A0A0;
+          font-size:28rpx;
+        }
+      }
+    }
+    .title{
+      height:100rpx;
+      line-height:100rpx;
+      border-bottom:2rpx solid #f1f1f1;
+      font-size:28rpx;
+    }
+    .content{
+      padding:20rpx 0;
+    }
+    .textarea{
+      line-height: 40rpx;
+      height: 40rpx;
+      color: rgba(160, 160, 160, 1);
+    }
+    .textareatext{
+      font-size: 28rpx;
+      position:relative;
+      z-index:1;
+    }
+    .wordsnum{
+      text-align:right;
+      color:#A0A0A0 ;
+      font-size:24rpx;
+      padding-top:20rpx;
+    }
+    .redbtn{
+      background: linear-gradient(to left,#FF8960,#FF62A5);
+      line-height: 80rpx;
+      height: 80rpx;
+      border-radius: 200px;
+      background-color: rgba(209, 209, 209, 1);
+      text-align:center;
+      color:#ffffff;
+      font-size:32rpx;
+      margin:60rpx 32rpx 0;
+    }
+</style>
+
+<template>
+  <view>
+    <view class="box line">
+      <view class="line-label">面试时间</view>
+      <view class="line-content">
+        <view>
+        <picker mode="multiSelector" bindchange="bindSemesterChange" bindcolumnchange="bindColumnChange" value="{{index}}" range="{{semester}}" range-key="value">
+          <view class="select" wx:if="{{index[0]==-1}}">请选择&gt;</view>
+          <view class="select" wx:else="{{index[0]==-1}}">{{semester[0][index[0]].value+' '+semester[1][index[1]].value}}</view>
+        </picker>
+        </view>
+      </view>
+    </view>
+    <view class="box">
+      <view class="title">备注信息</view>
+      <view class="content">
+        <textarea class="textareatext" style="height: 180rpx" placeholder="请填写备注信息（选填）" placeholder-style="textarea" maxlength="200"  bindinput="remarksChange"/>
+        <view class="wordsnum">{{wordsnum}}/200</view>
+      </view>
+    </view>
+
+    <view class="redbtn" @tap="submit">提交</view>
+  </view>
+</template>
+
+<script>
+
+import wepy from 'wepy';
+import api from '@/api/companyapi';
+export default class AgreeinterviewPage extends wepy.page {
+    config = {
+        navigationBarTitleText: '同意面试'
+    }
+    data = {
+        token:"",
+        tokenKey:"",
+        wordsnum:0,
+        datearr:[],
+        currentTab:0,
+        remarks:"",
+        dateIndex:0,
+        timeIndex:0,
+        semester: [[],[{"value":"08:00"},{"value":"08:30"},{"value":"09:00"},{"value":"09:30"},{"value":"10:00"},{"value":"10:30"},{"value":"11:00"},{"value":"11:30"},{"value":"12:00"},{"value":"12:30"},{"value":"13:00"},{"value":"13:30"},{"value":"14:00"},{"value":"14:30"},{"value":"15:00"},{"value":"15:30"},{"value":"16:00"},{"value":"16:30"},{"value":"17:00"},{"value":"17:30"},{"value":"18:00"},{"value":"18:30"},{"value":"19:00"},{"value":"19:30"},{"value":"20:00"},{"value":"20:30"}]],
+        index:[-1,-1],
+        interviewdate:"",
+        interviewtime:"",
+        inteid:"",
+        refresh:false
+    };
+
+    components = {
+    };
+    onLoad(options) {
+        const that = this;
+        that.semester[0]=that.getDateArr();
+        that.inteid=options.inteid
+        that.$apply();
+        // 获取登录信息
+        wx.getStorage({
+            key: "loginDataC",
+            success: function(res) {
+                that.token = res.data.token;
+                that.tokenKey = res.data.tokenKey;
+                that.companyname = res.data.corpname;
+                that.$apply();
+            }
+        });
+    };
+    getstartday(itervalByDay){
+       var  date=new Date();
+       var millisceonds =date.getTime();
+       for(var i=1;i<=itervalByDay;i++){
+          millisceonds +=24*60*60*1000;
+          date.setTime(millisceonds);
+          if(date.getDay()==0||date.getDay()==6) i--;
+       }
+       return date;
+    };
+    getDateArr(){
+      var arr=[];
+      for (var i=0;i<7;i++){
+          var d=this.getstartday(3+i);
+          var yyyy = d.getFullYear();
+          var month = d.getMonth() + 1;
+          var day = d.getDate();
+          var mm=month<10?"0" + month: month;
+          var dd=day<10?"0" + day: day;
+          var week;
+          switch (d.getDay()) {
+            case 1:
+              week="周一";
+              break;
+            case 2:
+              week="周二";
+              break;
+            case 3:
+              week="周三";
+              break;
+            case 4:
+              week="周四";
+              break;
+            case 5:
+              week="周五";
+              break;
+          }
+          var value=mm + "-" + dd +" "+week; //格式化
+          arr.push({"value":value,"date":yyyy+ "-"+mm + "-" + dd})
+      }
+      return arr
+    }
+    toast(title,opera){
+      wx.showToast({
+        title: title,
+        icon: "none",
+        duration: 1000, //提示的延迟时间，单位毫秒，默认：1500
+        mask: false,  //是否显示透明蒙层，防止触摸穿透，默认：false
+        success: function () {
+          if(opera){
+            wepy.$instance.globalData.interview=1
+            wx.navigateBack({
+                 delta: 1,
+            })
+          }
+
+        },
+        fail: function () { },
+        complete: function () { }
+      })
+    }
+    methods={
+      submit(){
+        var that=this;
+        if(that.interviewdate=='' || that.interviewtime==''){
+          this.toast('请选择面试时间')
+          return false
+        }
+        this.interviewConfirm()
+      },
+      bindSemesterChange:function(e){
+        var that=this;
+        that.index=e.detail.value
+        that.interviewdate=that.semester[0][e.detail.value[0]].date,
+        that.interviewtime=that.semester[1][e.detail.value[1]].value,
+        that.$apply();
+      },
+      bindColumnChange:function(e){
+        console.log(e.detail)
+      },
+      remarksChange(e){
+        this.wordsnum=e.detail.value.length
+        this.remarks=e.detail.value
+        this.$apply();
+      }
+    }
+    async interviewConfirm() {
+        const that = this;
+        const json = await api.interviewConfirm({
+            query: {
+                head: {
+                    "transcode": "H0079",
+                    "type": "h"
+                },
+                data: {
+                    "token": that.token,
+                    "tokenKey": that.tokenKey,
+                    "status":'1',
+                    "inteid":that.inteid,
+                    "interviewdate":that.interviewdate,
+                    "interviewtime":that.interviewtime,
+                    "address":'',
+                    "remarks":that.remarks
+                }
+            }
+        }).then(json=>{
+          that.refresh = true
+          that.$apply()
+          that.toast('约面成功',true)
+        }).catch(json=>{
+          that.toast('约面失败')
+        })
+        that.$apply()
+    };
+
+
+    globalData = {
+      interview:''
+    }
+
+    onUnload(){
+        var that=this
+          var pages = getCurrentPages(); // 当前页面
+          var beforePage = pages[pages.length - 3]; // 前一个页面
+          if(that.refresh){
+              beforePage.pageDataChange(); // 执行前一个页面的onLoad方法
+          }
+
+
+    }
+
+
+
+}
+</script>

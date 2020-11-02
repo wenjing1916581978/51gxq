@@ -1,0 +1,205 @@
+<style lang="less">
+  .people-container{
+    padding-right:32rpx;
+    padding-top:40rpx;
+    padding-bottom:40rpx;
+    margin-left:32rpx;
+    border-bottom:1rpx solid #EFEFEF;
+  }
+  .people-info{
+    display:flex;
+  }
+  .people-head{
+    width:100rpx;
+    width:100rpx;
+    text-align:center;
+    line-height:100rpx;
+    border-radius:50%;
+    font-size:56rpx;
+    color:#ffffff;
+    display:block;
+    margin-right:32rpx;
+    position:relative;
+    .unread{
+      color:green;
+      position:absolute;
+      width:20rpx;
+      height:20rpx;
+      display:block;
+      content:'';
+      background:#F16049;
+      border-radius:50%;
+      border:4rpx solid #ffffff;
+      top:0;
+      left:74rpx;
+    }
+  }
+
+  .people-text{
+    line-height:34rpx;
+    flex:1;
+  }
+  .people-name{
+    font-size:34rpx;
+    margin-right:20rpx;
+  }
+  .people-attr{
+    font-size:24rpx;
+    color:#A0A0A0;
+    &:not(:last-child):after{
+      content:'|';
+      padding:6rpx;
+    }
+  }
+  .people-label{
+    margin-top:18rpx;
+    color:#A0A0A0;
+    font-size:26rpx;
+    white-space:norwap;
+    overflow:hidden;
+  }
+  .people-label-text{
+    max-width:246rpx;
+    display:inline-block;
+    background:#F8F8F8;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+    line-height:46rpx;
+    padding:0 10rpx;
+    &:not(:last-child){
+      margin-right:20rpx;
+
+    }
+  }
+  .bg-woman{
+    background: linear-gradient(to right,#FF6A6A,#FF9191);
+  }
+  .bg-man{
+    background: linear-gradient(to right,#38A3DF,#74B9ED);
+  }
+  .depute-status{
+    font-size:24rpx;
+    margin-top:20rpx;
+  }
+  .highlight{
+      color:#F16049;
+  }
+  .remond-time{
+  margin-top:20rpx;
+    font-size:24rpx;
+    color:#A0A0A0 ;
+    line-height:24rpx;
+  }
+  .hide{
+    display:none!important;
+  }
+  .text-flex{
+    height:34rpx;
+    zoom:1;
+    &:after{
+      content:'';
+      clear:both;
+      height:0;
+      display:block;
+    }
+
+    .text-left{
+      float:left;
+    }
+    .text-right{
+      float:right;
+      font-size:24rpx;
+      color:#F16049;
+    }
+  }
+</style>
+
+<template>
+    <view class="people-container" @tap="tap" data-resource="{{item.resource}}" data-resumeid="{{item.resumeid}}" data-iscollection="{{item.iscollection}}" data-status="{{item.status}}" data-username="{{username}}" data-inteid="{{item.inteid}}" data-time="{{item.time}}" data-cid="{{collectionid}}">
+        <view class="people-info">
+          <view>
+            <view class="people-head {{item.sex=='1'?'bg-man':'bg-woman'}}">
+              <text>{{item.head}}</text>
+              <view class="unread" wx:if="{{item.isread}}"></view>
+            </view>
+          </view>
+          <view class="people-text">
+            <view class="text-flex">
+              <view class="text-left">
+                <text wx:if="{{item.resource==2}}" class="people-name">
+                  <block wx:if="{{item.sex=='1'}}">{{username}}先生</block>
+                  <block wx:else="{{item.sex=='1'}}">{{username}}女士</block>
+                </text>
+                <text class="people-name" wx:else="{{item.resource==2}}">{{username}}</text>
+                <text class="people-attr" wx:if="{{item.age}}">{{item.age}}</text>
+                <text class="people-attr" wx:if="{{item.workyears}}">{{item.workyears}}</text>
+                <text class="people-attr" wx:if="{{item.educationbg}}">{{item.educationbg}}</text>
+              </view>
+              <view class="text-right">{{item.expectsalary}}</view>
+            </view>
+            <view class="people-label">
+              <text class="people-label-text">{{lastposition}}</text>
+              <text class="people-label-text">{{lastcompany}}</text>
+            </view>
+          </view>
+        </view>
+
+
+
+
+        <view class="depute-status"  wx:if="{{item.inteid&&item.inteid!=''}}">
+          委托动态:
+          <text wx:if="{{item.status==0}}">待确认</text>
+          <text wx:if="{{item.status==1}}">约面中…</text>
+          <text wx:if="{{item.status==2}}" class="highlight">已约面<text wx:if="{{item.time}}">：({{item.time}})</text></text>
+          <text wx:if="{{item.status==3}}">已到面</text>
+          <text wx:if="{{item.status==4}}">未到面</text>
+          <text wx:if="{{item.status==5}}">不合适</text>
+        </view>
+        <view class="remond-time" wx:else>
+          推荐时间：<text wx:if="{{recommenddate}}">{{recommenddate}}</text>
+        </view>
+      </view>
+</template>
+
+<script>
+
+import wepy from 'wepy'
+import {makePy} from '../../utils/pinying'
+
+export default class Repeople extends wepy.component {
+  data = {
+    liColor:1
+  };
+  props={
+      item:Object,
+      img:String,
+      username:String,
+      lastposition:String,
+      lastcompany:String,
+      recommenddate:String || Number,
+      interviewtime:String
+  };
+  pinyin(string){
+    return makePy(string)
+    //应用
+  };
+  methods = {
+     tap (e) {
+        var resumeid=e.currentTarget.dataset.resumeid
+        var iscollection=e.currentTarget.dataset.iscollection
+        var resource=e.currentTarget.dataset.resource
+        var status=e.currentTarget.dataset.status
+        var time=e.currentTarget.dataset.time
+        var inteid=typeof(e.currentTarget.dataset.inteid)=="undefined"?'-1':e.currentTarget.dataset.inteid
+        var collectionid=e.currentTarget.dataset.iscollection=='1'?e.currentTarget.dataset.cid:''
+         wepy.navigateTo({
+          url: '/companypages/personal/resume?resumeid='+resumeid+'&iscollection='+iscollection+'&resource='+resource+'&status='+status+'&inteid='+inteid+'&time='+time+'&collectionid='+collectionid
+        })
+     }
+  };
+  onLoad(){
+  }
+}
+</script>

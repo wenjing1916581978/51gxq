@@ -1,0 +1,67 @@
+<style lang="less">
+  .defaultpage-icon{
+    width:180rpx;
+    margin:0 auto;
+    padding-top:20%;
+    image{
+      width:100%;
+      display:block;
+    }
+  }
+  .defaultpage-text{
+    margin:40rpx auto 60rpx;
+    max-width:392rpx;
+    word-break:keep-all;
+    font-size:28rpx;
+    color:#A0A0A0;
+    line-height:30rpx;
+    text-align:center;
+  }
+  .defaultpage-btn{
+    background: linear-gradient(to right,#F16049,#FFBD00);
+    width: 360rpx;
+    height: 80rpx;
+    border-radius: 200rpx;
+    text-align:center;
+    line-height:80rpx;
+    font-size:32rpx;
+    color:#ffffff;
+    margin:0 auto;
+  }
+</style>
+<template>
+    <view>
+      <view class="defaultpage-icon">
+        <image src="{{img}}" mode="widthFix" />
+      </view>
+
+        <view class="defaultpage-text">
+          {{text}}
+        </view>
+        <navigator class='defaultpage-btn' wx:if="{{btntext}}"  url="{{url}}"  >{{btntext}}</navigator>
+    </view>
+</template>
+<script>
+import wepy from 'wepy'
+export default class Defaultpage extends wepy.component {
+    props = {
+        img: String,
+        text:String,
+        btntext:String,
+        url:String
+    };
+    methods={
+      toJump(){
+
+        var that =this
+        console.log('点击我了',that.url)
+        if(that.url){
+          wepy.navigateTo({
+           url: that.url
+         })
+        }
+
+      }
+    }
+}
+</script>

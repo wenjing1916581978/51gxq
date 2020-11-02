@@ -1,0 +1,57 @@
+<style lang="less">
+page{
+  padding-bottom: 100rpx;
+}
+  .panel {
+    width: 100%;
+    margin-top: 20rpx;
+    text-align: left;
+    font-size: 12px;
+    padding-top: 20rpx;
+    padding-left: 50rpx;
+    padding-bottom: 20rpx;
+    border: 1px solid #ccc;
+
+    .title {
+      padding-bottom: 20rpx;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .info {
+      padding: 15rpx;
+    }
+    .testcounter {
+      margin-top: 15rpx;
+      position: absolute;
+    }
+    .counterview {
+      margin-left: 120rpx;
+    }
+  }
+</style>
+<template>
+    <i-tab-bar current="{{ current }}" color="#1596FF" fixed="true" bindchange="handleChange">
+        <i-tab-bar-item key="0" img="../../images/icons/main.png" current-img="../../images/icons/main_selected.png" title="主页"></i-tab-bar-item>
+        <!-- <i-tab-bar-item key="group" img="group" current-img="group_fill" title="搜索"></i-tab-bar-item> -->
+        <i-tab-bar-item key="1" img="../../images/icons/news.png" current-img="../../images/icons/news_selected.png" title="投递动态"></i-tab-bar-item>
+        <i-tab-bar-item key="2" img="../../images/icons/my.png" current-img="../../images/icons/my_selected.png" title="我的"></i-tab-bar-item>
+    </i-tab-bar>
+</template>
+<script>
+  import wepy from 'wepy'
+  export default class Tabbar extends wepy.component {
+    props={
+        current:{
+            type:String,
+            default:'0'
+        }
+    }
+
+    methods={
+        handleChange ({ detail }) {
+            let url = detail.key!='0'?detail.key=='1'?'/companypages/delivery/delivery':'/companypages/personal/personal':'/companypages/joblist/joblist'
+            wx.reLaunch({url})
+        }
+    }
+  }
+</script>

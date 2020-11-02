@@ -1,0 +1,99 @@
+<style lang="less">
+  page {
+    background: #F0F1F2;
+    .biggest {
+        background: #fff;
+        border-top: #f1f1f1 solid 1rpx;
+        .block {
+            margin: auto 40rpx;
+            .list_item {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                font-size: 28rpx;
+                color: #a0a0a0;
+                height: 120rpx;
+                justify-content: space-between;
+                border-bottom: #f1f1f1 solid 2rpx;
+                .title {
+                    color: #333333;
+                    width: 35%;
+                }
+            }
+
+        }
+    }
+  }
+  .picker{
+    image{
+      width: 10rpx;
+      height: 16rpx;
+    }
+  }
+</style>
+<template>
+  <form bindsubmit="formSubmit">
+    <view class="biggest">
+        <view class="block">
+            <view class="list_item" bindtap="goComBaseInfo" data-content="1">
+                <view class="title">基本信息设置</view>
+                <view class="picker">
+                  <image src="/images/icons/arrow_right.png"></image>
+                </view>
+            </view>
+            <view class="list_item" bindtap="goComBaseInfo" data-content="2">
+                <view class="title">公司简介</view>
+                <view class="picker">
+                  <image src="/images/icons/arrow_right.png"></image>
+                </view>
+            </view>
+            <!--<view class="list_item">
+                <view class="title">宣传视频</view>
+                <view class="picker" bindtap="bindDateChange1">
+                  <image src=""></image>
+                </view>
+            </view>-->
+            <view class="list_item" @tap="toJump">
+                <view class="title">预览公司主页</view>
+                <view class="picker" >
+                  <image src="/images/icons/arrow_right.png"></image>
+                </view>
+            </view>
+        </view>
+    </view>
+  </form>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '@/api/companyapi';
+  import tip from '../../utils/tip';
+
+  export default class BaseInfo extends wepy.page {
+
+    config = {
+        navigationBarTitleText: '公司主页设置',
+    }
+
+    data = {
+
+    }
+
+    onLoad(options) {
+
+    }
+
+    methods = {
+      toJump(){
+        wepy.navigateTo({
+          url:'/companypages/personal/viewhomepage'
+        })
+      },
+       goComBaseInfo (e) {// 基本信息设置
+            var content=e.currentTarget.dataset.content
+            wx.navigateTo({
+                url: `com_baseinfo?content=`+content
+            })
+        }
+    }
+  }
+</script>

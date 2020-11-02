@@ -1,0 +1,51 @@
+<style lang='scss'>
+</style>
+
+<template>
+  <view>
+      <navigationload :syncLoadShow.sync="showPageLoading"></navigationload>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import NavigationLoad from '@/components/navigationload';
+
+export default class Transit extends wepy.page {
+
+  config = {
+    navigationBarTitleText: '51高芯圈',
+
+  }
+
+  components = {
+    navigationload: NavigationLoad,
+  }
+
+  data ={
+    showPageLoading: true,
+    type:'1', //1是企业端 0是个人端
+  }
+
+  onLoad (options) {
+      this.type = wx.getStorageSync('type') || '0'
+      this.$apply()
+      // let url = this.type=='1'?'/companypages/joblist/joblist':'/personpages/home/home'
+      if(this.type!='1'){
+        wx.reLaunch({url:'/personpages/home/home'})
+      }else{
+        wx.getStorage({
+            key: 'loginDataC',
+            success (res) {
+                wx.reLaunch({url:'/companypages/joblist/joblist'})
+            },
+            fail(err){
+
+                wx.reLaunch({url:'/companypages/login/login'})
+            }
+        })
+      }
+      
+  }
+}
+</script>

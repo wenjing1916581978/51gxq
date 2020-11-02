@@ -1,0 +1,133 @@
+<style lang="less">
+  .container{
+    padding-top:20rpx;
+  }
+  .labelbox{
+    padding:0 24rpx;
+    &:after{
+      content:'';
+      height:0;
+      display:block;
+      clear:both;
+    }
+    .label{
+      width:25%;
+      float:left;
+      margin-bottom:20rpx;
+      view{
+        font-size:24rpx;
+        color:#A0A0A0;
+        text-align:center;
+        margin:0 8rpx;
+        height: 60rpx;
+        line-height: 60rpx;
+        border-radius: 16rpx;
+        background-color: rgba(255, 255, 255, 1);
+        border: 1px solid rgba(216, 216, 216, 1);
+        &.selected{
+          border-color:#FF6F6F;
+          color:#FF6F6F;
+        }
+      }
+
+    }
+  }
+  .btn{
+    background: linear-gradient(to right,#F16049,#FFBD00);
+    height: 80rpx;
+    border-radius: 200rpx;
+    text-align:center;
+    line-height:80rpx;
+    font-size:32rpx;
+    color:#ffffff;
+    margin:0 auto;
+    margin:20rpx 32rpx 0;
+  }
+</style>
+<template>
+  <view class="container">
+    <view class="labelbox">
+      <repeat for="{{weal}}" key="index" index="index" item="item">
+        <view class="label">
+          <view class="{{item.selected==1?'selected':''}}" @tap="tap" data-index="{{index}}">{{item.value}}</view>
+        </view>
+      </repeat>
+    </view>
+    <view class="btn" @tap="submit">确定</view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '@/api/companyapi';
+  import tip from '../../utils/tip';
+
+  export default class BaseInfo extends wepy.page {
+
+    config = {
+        navigationBarTitleText: '职位福利',
+    }
+    data = {
+      weal:[],
+      selectbox:[],
+    }
+    onLoad(options) {
+      var that=this
+      wepy.$instance.globalData.value=options.value
+      that.selectbox=options.value==''?[]:options.value.split(',')
+      var arr = JSON.parse(options.arr)
+      var result=[]
+      for ( var i = 0; i <arr.length; i++){
+        if(options.value==''){
+          result.push({"value":arr[i],"selected":that.searchIndex(that.selectbox,arr[i])==-1?false:true})
+        }else{
+          result.push({"value":arr[i],"selected":that.searchIndex(that.selectbox,arr[i])==-1?false:true})
+        }
+      }
+      that.weal = result;
+      that.$apply();
+    }
+    methods = {
+      tap(e){
+        var that=this
+        var index= e.currentTarget.dataset.index
+        that.weal[index].selected=!that.weal[index].selected
+        that.$apply()
+      },
+      submit(){
+        var that =this
+        var string=''
+        that.weal.forEach(function(v,i){
+          if(v.selected){
+            string+=v.value+','
+          }
+
+        });
+        string=string==''?'':string.substring(0,string.length-1);
+        wepy.$instance.globalData.value=string
+        wx.navigateBack({
+             delta: 1,
+        })
+      }
+    }
+
+    globalData = {
+      value:''
+    }
+
+    searchIndex(arr, item) {
+      if (Array.prototype.indexOf){   //判断当前浏览器是否支持一般ie不支持
+          return arr.indexOf(item);
+      } else {
+          for (var i = 0; i < arr.length; i++){
+              if (arr[i] === item){
+                  return i;
+              }
+          }
+      }
+      return -1;//不管如何,始终返回-1
+    }
+
+
+
+  }
+</script>

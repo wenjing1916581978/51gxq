@@ -1,0 +1,316 @@
+<style lang='scss'>
+    .collection-container {
+        .operate-container {
+            padding: 0 32rpx;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            border-bottom: 2rpx solid #e1e1e1;
+            .operate-btn {
+                font-size:28rpx;
+                padding: 30rpx;
+            }
+            .operate-btn-active {
+                border-bottom: 6rpx solid #1596FF;
+                color: #1596FF;
+            }
+        }
+        .no-collect-container {
+            padding: 0 32rpx;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 800rpx;
+            align-items: center;
+            image {
+                width: 176rpx;
+                height: 220rpx;
+            }
+            view {
+                color: #A0A0A0;
+                font-size: 28rpx;
+                margin-top: 30rpx;
+            }
+        }
+        .collectList {
+            margin: 30rpx;
+            border-bottom: #f1f1f1 solid 1rpx;
+            .up {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                .left {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: flex-start;
+                    align-items: center;
+                    width: 65%;
+                    image {
+                        width: 72rpx;
+                        height: 72rpx;
+                        border-radius: 50%;
+                    }
+                    .intro {
+                        margin-left: 20rpx;
+                        .up {
+                            font-size: 32rpx;
+                            color: #353535;
+                        }
+                        .down {
+                            font-size: 24rpx;
+                            color: #A0A0A0;
+                        }
+                    }
+                }
+                .right {
+                    font-size: 36rpx;
+                    color: #A0A0A0 ;
+                }
+            }
+            .down {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                .left {
+                    display: flex;
+                    flex-direction: row;
+                    color: #656565;
+                    margin: 30rpx 0rpx;
+                    .up {
+                        font-size: 24rpx;
+                        margin-left: 20rpx;
+                    }
+                    .down {
+                        font-size: 24rpx;
+                    }
+                }
+            }
+        }
+    }
+</style>
+
+<template>
+    <view class="collection-container">
+        <view class="operate-container">
+            <view data-num="1" class="operate-btn {{_num==1?'operate-btn-active':''}}" data-status="2"  bindtap="menuClick">未处理</view>
+            <view data-num="2" class="operate-btn {{_num==2?'operate-btn-active':''}}" data-status="1" bindtap="menuClick">合适</view>
+            <view data-num="3" class="operate-btn {{_num==3?'operate-btn-active':''}}" data-status="3" bindtap="menuClick">面试邀约</view>
+            <view data-num="4" class="operate-btn {{_num==4?'operate-btn-active':''}}" data-status="4" bindtap="menuClick">不合适</view>
+        </view>
+        <view wx:if="{{collectStatus}}">
+            <repeat for="{{collectData}}" key="index" index="index" item="item">
+                <view class="collectList" data-resumeid="{{item.resumeid}}" data-delid="{{item.id}}" @tap="goResumeView">
+                    <view class="up">
+                        <view class="left">
+                            <image wx:if="{{item.headimg}}" src="{{item.headimg}}"></image>
+                            <image wx:else src="{{item.sex=='女'?'../../images/icons/touxiang_nv.png':'../../images/icons/touxiang_nan.png'}}"></image>
+                            <view class="intro">
+                                <view class="up">{{item.username}}</view>
+                                <view class="down">
+                                  <text wx:if="{{item.age}}">{{item.age}}</text>
+                                  <text wx:if="{{item.educationbg}}">| {{item.educationbg}}</text>
+                                  <text wx:if="{{item.workyears}}">| {{item.workyears}}</text>
+                                  <text wx:if="{{item.sitecity}}">| {{item.sitecity}}</text>
+                                </view>
+                            </view>
+                        </view>
+                        <view class="right">></view>
+                    </view>
+                    <view class="down">
+                        <view class="left">
+                            <view class="down">{{item.createdate}}</view>
+                            <view class="up"><text class="{{item.jobname!=''}}">投递职位：{{item.jobname}}</text></view>
+                        </view>
+                    </view>
+                </view>
+            </repeat>
+        </view>
+        <view class="no-collect-container" wx:else="{{collectStatus}}">
+            <image src="/images/icons/no_delivery.png"></image>
+            <view>{{warningWord}}</view>
+        </view>
+        <!--加载更多时动画-->
+        <bottomloadmore :syncShow.sync="showLoading" message="正在加载"></bottomloadmore>
+        <tabbar current="1"></tabbar>
+    </view>
+</template>
+
+<script>
+
+import wepy from 'wepy';
+import api from '@/api/companyapi';
+import tip from '../../utils/tip';
+import utils from'../../utils/utils';
+// import CommPosi from '../../components/commposi2';
+import Tabbar from '@/components/tabbar-c';
+
+import BottomLoadMore from "../../components/bottomloadmore";
+
+export default class DeliveryPage extends wepy.page {
+    config = {
+        navigationBarTitleText: '投递状态',
+        enablePullDownRefresh: true,
+        usingComponents: {
+            "i-tab-bar": "../../iview/tab-bar/index",
+            "i-tab-bar-item": "../../iview/tab-bar-item/index"
+        }
+    }
+    data = {
+      init:false,
+        _num: "1",
+        collectData: [1,2,3],
+        warningWord:"",
+        collectStatus: false,
+        showLoading: false,
+        totalPage: 0,    //总数
+        currentPage: 1,
+        token:'',
+        tokenKey:'',
+        status:2,
+    }
+
+    components = {
+        // commposi: CommPosi,
+        bottomloadmore: BottomLoadMore,
+        tabbar:Tabbar
+
+    };
+    onLoad() {
+
+        // 获取登录信息
+        const that = this;
+        wx.getStorage({
+            key: 'loginDataC',
+            success: function(res) {
+                that.token = res.data.token;
+                that.tokenKey = res.data.tokenKey;
+                that.$apply();
+                // 获取已投递职位
+                that.getReceivedResume(that.status,that.currentPage,true)
+            },fail:function(){
+                utils.toLogin();
+            }
+        })
+
+    }
+    onShow(){
+      const that = this;
+      if(that.init) that.getReceivedResume(that.status,that.currentPage,true)
+    }
+
+    methods = {
+
+       // 点击切换投递状态
+        menuClick (e) {
+            this._num = e.currentTarget.dataset.num;
+            this.status=e.currentTarget.dataset.status
+            this.current =1;
+            this.$apply()
+            this.getReceivedResume(this.status,this.current,true);
+        },
+        goResumeView(e){
+          var resumeid=e.currentTarget.dataset.resumeid
+          var delid=e.currentTarget.dataset.delid
+            wepy.navigateTo({
+              url:'/companypages/personal/resume?resumeid='+resumeid+'&delivery='+this.status+'&did='+delid
+            })
+        }
+
+    };
+    ages(str){
+           var   r   =   str.match(/^(\d{1,4})(-|\/)(\d{1,2})\2(\d{1,2})$/);
+           if(r==null)return   false;
+           var   d=   new   Date(r[1],   r[3]-1,   r[4]);
+           if   (d.getFullYear()==r[1]&&(d.getMonth()+1)==r[3]&&d.getDate()==r[4])
+           {
+                 var   Y   =   new   Date().getFullYear();
+                 return((Y-r[1])+"岁");
+           }
+           return("");
+     }
+    //获取投递简历
+    async getReceivedResume(status, currentPage,reset) {
+        wx.showLoading({
+            title: '加载中',
+        })
+        const that = this;
+        const json = await api.getReceivedResume({
+            query: {
+                head: {
+                    "transcode": "H0074",
+                    "type": "h"
+                },
+                data: {
+                    "token": that.token,
+                    "tokenKey": that.tokenKey,
+                    "status": status || "1",
+                    "page": currentPage.toString() || "2"
+                }
+            }
+        }).then(json=>{
+          console.log(json)
+          that.init = true
+            that.collectStatus = true;
+            var collectlist = json.data.data.list.map(obj=>{
+              if (obj.age=='') {
+                obj.age= this.ages(obj.borndate)
+              }
+              return obj
+            });
+
+            this.collectData = reset ? collectlist:that.collectData.concat(collectlist)
+            console.log('列表',this.collectData)
+            that.collectData.forEach(element => {
+                element.createdate = utils.date('Y-m-d',(element.createdate)/1000)
+            });
+            that.totalPage =parseInt(json.data.num/ 10);
+            if(that.collectData.length==0){
+                that.collectStatus = false;
+                that.warningWord = "暂未查到更多信息";
+            }
+        }).catch(json=>{
+          that.init = true
+          that.collectStatus = true;
+          that.warningWord = json.data.returnMsg;
+        })
+        wx.hideLoading()
+        that.$apply();
+    }
+    /**
+     * 页面上拉触底事件的处理函数
+     */
+    onReachBottom(event) {
+        let that = this;
+        that.showLoading = true;
+        //判断总页数是否大于翻页数
+        if ((that.totalPage) > that.currentPage) {
+            //防止重复加载
+            if (that.preventRepeatReuqest) {
+              return true;
+            }
+            that.preventRepeatReuqest = true;
+            that.currentPage++;
+            that.getReceivedResume(that.status,that.currentPage,false);
+            that.preventRepeatReuqest = false;
+        } else {
+           that.showLoading = false;
+        }
+    }
+    onPullDownRefresh() {
+        var that=this
+        wx.showNavigationBarLoading() //在标题栏中显示加载
+        that.currentPage=1
+        that.$apply()
+        that.getReceivedResume(that.status,that.currentPage,true)
+        //模拟加载
+        setTimeout(function()
+        {
+         wx.hideNavigationBarLoading() //完成停止加载
+         wx.stopPullDownRefresh() //停止下拉刷新
+        },1500);
+
+    }
+}
+</script>

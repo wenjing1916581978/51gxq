@@ -1,0 +1,482 @@
+<style lang='scss'>
+    page{
+      background:#f0f1f2;
+      height:100%;
+    }
+    .container{
+      background:#ffffff;
+      min-height:100%;
+    }
+    view{
+      line-height:34rpx;
+    }
+    .hide{
+      display:none;
+    }
+    .top-head{
+      // display:flex;
+      padding:136rpx 32rpx 24rpx;
+      background:#FCFCFC;
+      box-shadow: 0px 0.5px 0px 0px rgba(0, 0, 0, 0.2);
+
+    }
+    .company-info{
+      // flex:1;
+    }
+    .company-name{
+      font-size:54rpx;
+      line-height:54rpx;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .job-num{
+      height:40rpx;
+      line-height:40rpx;
+      padding:0 22rpx;
+      min-width:220rpx;
+      text-align:center;
+      font-size:28rpx;
+      color:#ffffff;
+      margin:24rpx 0;
+      display:inline-block;
+      border-radius:20rpx;
+    }
+    .job-have{
+      background: linear-gradient(to right,#FF8960,#FF62A5);
+    }
+    .job-no{
+      background: #d8d8d8;
+    }
+    .new-built{
+      width:42rpx;
+      height:42rpx;
+      border-radius:50%;
+      line-height:42rpx;
+      text-align:center;
+      background: linear-gradient(to right,#0f7aff,#048eff);
+      // box-shadow: 0px 2px 4px 0px rgba(255, 158, 0, 0.5);
+      color:#ffffff;
+      font-size:28rpx;
+      display: inline-block;;
+      margin-left: 20rpx;
+    }
+    .job-item{
+      display:flex;
+      align-items:center;
+      margin-left:32rpx;
+      padding:40rpx 32rpx 40rpx 0;
+      border-bottom:1px solid #EFEFEF;
+    }
+    .job-info{
+      flex:1;
+
+    }
+    .job-name{
+      display:inline-block;
+      line-height:34rpx;
+      margin-right:20rpx;
+      max-width:420rpx;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      vertical-align:middle;
+    }
+    .job-label{
+      display:inline-block;
+      line-height:30rpx;
+      height:30rpx;
+      border-radius:15rpx;
+      color:#ffffff;
+      font-size:20rpx;
+      text-align:center;
+      padding:0 12rpx;
+      margin-right:10rpx;
+      vertical-align:middle;
+    }
+    .label-default{
+      background: linear-gradient(to right,#FF8960,#FF62A5);
+      margin-right:10rpx;
+      padding:0 14rpx;
+    }
+    .label-recom{
+      padding:0 0!important;
+      width:30rpx;
+      background: linear-gradient(to right,#6F3BDB,#C86DD7);
+    }
+    .label-dm{
+      background: linear-gradient(to right,#98CF36,#45B517);
+    }
+    .label-general{
+      padding:0 0!important;
+      width:30rpx;
+      background: linear-gradient(to right,#838383,#B0B0B0);
+    }
+    .attr-box{
+      line-height:24rpx;
+      margin-top:16rpx;
+      margin-bottom:18rpx;
+    }
+    .job-attr{
+      font-size:24rpx;
+      color:#333333;
+
+      &:not(:last-child):after{
+        content:'|';
+        padding:6rpx;
+      }
+    }
+    .job-time{
+      font-size:24rpx;
+      color:#A0A0A0 ;
+      line-height:1em;
+    }
+    .job-opera{
+      position:relative;
+    }
+    .opera-btn{
+      width:60rpx;
+      image{
+        width:100%;
+        dispaly:block;
+      }
+    }
+    .btn-container{
+      position:absolute;
+      top:0;
+      right:60rpx;
+      transition: all 300ms cubic-bezier(.87,-.41,.19,1.44);
+      dispaly:inline-block;
+      visibility: hidden;
+      opacity:0;
+      &.show{
+        opacity:1;
+        right:80rpx;
+        visibility: visible;
+      }
+    }
+    .btn-group{
+      dispaly:inline-block;
+      border-radius: 16rpx;
+      background-color: rgba(255, 255, 255, 1);
+      box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+      padding:40rpx;
+
+      .btn-item{
+        white-space:nowrap;
+        font-size:28rpx;
+        color:#333333;
+        &:not(:last-child){
+          padding-bottom:60rpx;
+        }
+      }
+    }
+</style>
+
+<template>
+
+    <view class="container">
+      <view class="top-head">
+        <view class="company-info">
+          <view class="company-name">
+            <text>{{companyname}}</text>
+          </view>
+          <!--没有职位的话 job-no-->
+          <view>
+            <view class="job-num {{jobsum!=0?'job-have':'job-no' }}">
+              <text  wx:if="{{jobsum!=0}}">{{jobsum}}个职位发布中</text>
+              <text wx:else>暂无职位发布</text>
+
+            </view>
+            <view class="new-built" @tap="newbuilt">+</view>
+          </view>
+
+        </view>
+
+      </view>
+      <repeat for="{{joblist}}" key="index" index="index" item="item" wx:if="{{jobsum}}">
+        <view class="job-item">
+          <view class="job-info" @tap="toJump" data-jobid="{{item.jobid}}" data-jobname="{{item.jobname}}" data-recommend="{{item.isRecommend}}" data-interview="{{item.isInterviewService}}" data-recnum="{{item.recnum}}">
+            <view>
+              <view class="job-name">{{item.jobname}}</view>
+
+              <block wx:if="{{item.isInterviewService}}">
+                <view class="job-label label-dm">到面</view>
+                <view class="job-label label-default" wx:if="{{item.interviewnum}}">{{item.interviewnum}}</view>
+              </block>
+              <block wx:elif="{{item.isRecommend}}">
+                <view class="job-label label-recom">推</view>
+                <view class="job-label label-default" wx:if="{{item.recnum}}">{{item.recnum}}</view>
+              </block>
+              <block wx:else>
+                <view class="job-label label-general">普</view>
+              </block>
+            </view>
+            <view class="attr-box">
+              <text class="job-attr">{{item.jobcity}}</text>
+              <text class="job-attr">{{item.workyears}}</text>
+              <text class="job-attr">{{item.salary}}</text>
+            </view>
+            <view class="job-time">
+              职位发布时间：{{item.createdate}}
+            </view>
+
+          </view>
+          <view class="job-opera">
+            <view class="opera-btn" data-index="{{index}}" @tap="toggleBtn">
+
+              <image src="/images/icons/btnbox.png" mode="widthFix"></image>
+            </view>
+            <view class="btn-container {{ uhide == index ? 'show':'' }}" >
+              <view class="btn-group">
+                <block>
+                  <view class="btn-item" @tap="preview" data-jobid="{{item.jobid}}" data-status="{{item.status}}" data-index="{{index}}">预览职位</view>
+                  <view class="btn-item" @tap="edit" data-jobid="{{item.jobid}}" data-index="{{index}}">编辑职位</view>
+                  <view class="btn-item" @tap="opera" data-jobid="{{item.jobid}}" data-index="{{index}}">下线职位</view>
+                </block>
+              </view>
+
+            </view>
+          </view>
+        </view>
+      </repeat>
+      <block wx:if="{{jobsum==0}}">
+        <defaultpage img="/images/icons/no_delivery.png" text="尚未发布职位 海量人才库，赶紧发布职位吧！" btntext="去发布" url="../personal/release_posi" >
+        </defaultpage>
+      </block>
+
+      <!--<bottomloadmore :syncShow.sync="showLoading" message="????????????"></bottomloadmore>-->
+      <tabbar current="0"></tabbar>
+    </view>
+</template>
+
+<script>
+
+import wepy from 'wepy';
+import api from '@/api/companyapi';
+import Tabbar from '@/components/tabbar-c';
+import tip from '../../utils/tip';
+import utils from'../../utils/utils';
+import Defaultpage from '../../components/defaultpage';
+import {LOGIN_INFO} from '../../utils/constants';
+
+import BottomLoadMore from "../../components/bottomloadmore";
+
+export default class DeliveryPage extends wepy.page {
+    config = {
+        navigationBarTitleText: '',
+        navigationStyle:"custom",
+        enablePullDownRefresh:true,
+        usingComponents: {
+            "i-tab-bar": "../../iview/tab-bar/index",
+            "i-tab-bar-item": "../../iview/tab-bar-item/index"
+        }
+    }
+    data = {
+        token:'',
+        tokenKey:'',
+        uhide: -1,
+        joblist: [],
+        jobsum:0,
+        companyname:'',
+        clickIndex:0,
+    };
+
+    components = {
+        bottomloadmore: BottomLoadMore,
+        defaultpage:Defaultpage,
+        tabbar:Tabbar
+    };
+    preview(e){
+      var that=this
+      var jobid=e.currentTarget.dataset.jobid
+      var status=e.currentTarget.dataset.status
+      var index=e.currentTarget.dataset.index
+      that.clickIndex=index
+      that.uhide=-1
+      that.$apply()
+      wepy.navigateTo({
+       url: '/companypages/jobdetails/jobdetails?jobid='+jobid+'&status='+status
+     })
+    }
+
+    //点击切换隐藏和显示
+    toggleBtn(e){
+      var clickId=e.currentTarget.dataset.index;
+      (this.uhide == clickId) ? this.uhide=-1 : this.uhide=clickId;
+      this.$apply();
+
+    }
+    //跳转页面
+    toJump(e){
+      var jobName=e.currentTarget.dataset.jobname
+      var jobId=e.currentTarget.dataset.jobid
+      var recommend=e.currentTarget.dataset.recommend
+      var interview=e.currentTarget.dataset.interview
+      var recnum=e.currentTarget.dataset.recnum
+      if(recommend==1){
+        this.$navigate('../recommend/recommend?jobid='+jobId+'&jobname='+jobName+'&recommend='+recommend+'&recnum='+recnum);
+      }else if(interview==1){
+        this.$navigate('../recommend/interview?jobid='+jobId+'&jobname='+jobName+'&interview='+interview);
+      }else{
+        this.$navigate('../recommend/jobseeker?jobid='+jobId+'&jobname='+jobName);
+      }
+
+    }
+    newbuilt(){
+      wepy.navigateTo({
+        url:'/companypages/personal/release_posi'
+      })
+    }
+    //编辑职位
+    edit(e){
+      var jobId=e.currentTarget.dataset.jobid
+      this.clickIndex=e.currentTarget.dataset.index
+      this.uhide=-1;
+      this.$apply()
+      console.log(this.clickIndex)
+      wepy.navigateTo({
+        url:'/companypages/personal/release_posi?jobid='+jobId
+      })
+    }
+    //删除职位
+    opera(e){
+      var jobId=e.currentTarget.dataset.jobid.toString()
+      var index=e.currentTarget.dataset.index
+      this.operateJob(jobId,'2',index)
+    }
+    //判断是否登录
+    isLogin(){
+      const that = this;
+      var userinfo=wx.getStorageSync(LOGIN_INFO)
+      if(userinfo==''){
+        wx.redirectTo({
+          url: '/companypages/login/login'
+        })
+        return false
+      }else {
+        if(userinfo.token!=that.token){
+          wx.getStorage({
+              key: 'loginDataC',
+              success: function(res) {
+                  that.token = res.data.token;
+                  that.tokenKey = res.data.tokenKey;
+                  that.companyname = res.data.corpname;
+                  that.$apply();
+                  // 获取企业职位列表查询
+                  that.getListjob(that.page,true)
+              }
+          });
+        }
+      }
+    }
+    onLoad() {
+    };
+    async operateJob(jobid,status,index){
+      const that = this;
+      await api.closeJob({
+            query: {
+                head: {
+                    "transcode": "H0032",
+                    "type": "h"
+                },
+                data: {
+                    "token": that.token,
+                    "tokenKey": that.tokenKey,
+                    "jobid":jobid,
+                    "status":status
+                }
+            }
+        }).then(function(json) {
+          that.joblist.splice(index,1)
+          that.uhide=-1
+          that.$apply()
+          tip.error('下线成功')
+        }).catch(function(json) {
+          tip.error('下线失败')
+        })
+    }
+    async getListjob(currentPage,reset) {
+        wx.showLoading({
+            title: '加载中',
+        })
+        const that = this;
+        await api.getListjob({
+            query: {
+                head: {
+                    "transcode": "H0044",
+                    "type": "h"
+                },
+                data: {
+                    "token": that.token,
+                    "tokenKey": that.tokenKey,
+                    "status":'2',
+                    "page": currentPage
+                }
+            }
+        }).then(function(json) {
+          var joblist=json.data.data.joblist
+          that.joblist = reset ? joblist:that.joblist.concat(joblist)
+          that.jobsum = json.data.data.jobsum;
+          that.totalPage =Math.ceil(json.data.data.jobsum/ 10);
+          that.$apply();
+          if(that.joblist.length==0){
+              that.collectStatus = false;
+              that.warningWord = "暂未查到更多信息";
+          }
+        }).catch(function(json) {
+          that.collectStatus = false;
+          that.warningWord = json.data.returnMsg;
+        })
+        wx.hideLoading()
+        that.$apply();
+    };
+
+    /**
+     * 页面上拉触底事件的处理函数
+     */
+    onReachBottom(event) {
+        let that = this;
+        that.showLoading = true;
+        //判断总页数是否大于翻页数
+        if ((that.totalPage) > that.currentPage) {
+            //防止重复加载
+            if (that.preventRepeatReuqest) {
+              return true;
+            }
+            that.preventRepeatReuqest = true;
+            that.currentPage++;
+            that.getListjob(that.currentPage,false);
+            that.preventRepeatReuqest = false;
+        } else {
+           that.showLoading = false;
+        }
+    }
+
+    // 下拉刷新
+    onPullDownRefresh() {
+      var that=this
+      wx.showNavigationBarLoading() //在标题栏中显示加载
+      that.page=1
+      that.$apply()
+      that.getListjob(that.page,true)
+      //模拟加载
+      setTimeout(function()
+      {
+       wx.hideNavigationBarLoading() //完成停止加载
+       wx.stopPullDownRefresh() //停止下拉刷新
+      },1500);
+
+    }
+    onShow(){
+      this.isLogin()
+    }
+    // 页面刷新
+    pageDataChange(){
+      var that=this
+      that.joblist=that.joblist.filter((item,index) => index!=that.clickIndex )
+      that.$apply()
+    }
+
+}
+</script>

@@ -1,0 +1,327 @@
+<style lang="scss">
+    .base-edit-container {
+        display: flex;
+        flex-direction: column;
+        .portrait-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40rpx 0 10rpx;
+            .icon-upload {
+                margin-bottom: 10rpx;
+                width: 140rpx;
+                height: 140rpx;
+            }
+            text {
+                font-size: 24rpx;
+                color: #a0a0a0;
+            }
+        }
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            padding: 0 40rpx;
+            .list-item {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 28rpx;
+                color: #888888;
+                height: 100rpx;
+                border-bottom: #f1f1f1 solid 2rpx;
+                .label {
+                    min-width: 120rpx;
+                    color: #353535;
+                }
+            }
+            .input-area {
+                input {
+                    text-align: right;
+                    color: #888888;
+                    width: 100%;
+                }
+                .phcolor {
+                    color: #888888;
+                    text-align: right;
+                }
+            }
+        }
+        .btn-box {
+            margin: 0 auto;
+            margin-top: 20rpx;
+            width:586rpx;
+            height:80rpx;
+            .save-btn {
+                width:586rpx;
+                height:80rpx;
+                text-align:center;
+                font-size:36rpx;
+                color:#fff;
+                background-color:#1596FF;
+            }
+        }
+    }
+</style>
+
+<template>
+  <view class="base-edit-container">
+      <form bindsubmit="baseEditSubmit">
+            <view class="portrait-box" @tap.stop="changePortrait">
+                <image mode="aspectFill" wx:if="{{showPortraitStatus}}" class="icon-upload" src="{{tempPortraitFilePath}}"></image>
+                <image mode="aspectFill" wx:else="{{showPortraitStatus}}" class="icon-upload" src="/images/icons/upload_head.png"></image>
+                <text>点击更换头像</text>
+            </view>
+            <view class="list-container">
+                <view class="list-item">
+                    <text class="label">姓名</text>
+                    <view class="input-area">
+                        <input placeholder-class="phcolor" type="text" name="username" value="{{username}}" placeholder="请填写" />
+                    </view>
+                </view>
+                <view class="list-item">
+                    <text class="label">性别</text>
+                    <picker name="sex" bindchange="bindSexChange" value="{{index}}" range="{{sex}}">
+                        <view class="picker">
+                            <text wx:if="{{sexStatus}}">{{u_sex ? u_sex : "请选择"}}</text>
+                            <text wx:else>{{sex[indexSex]}}</text>
+                        </view>
+                    </picker>
+                </view>
+                <view class="list-item">
+                    <text class="label">邮箱</text>
+                    <view class="input-area">
+                        <input placeholder-class="phcolor" type="text" name="email" value="{{email}}" placeholder="请填写" />
+                    </view>
+                </view>
+                <view class="list-item">
+                    <text class="label">联系电话</text>
+                    <view class="input-area">
+                        <input placeholder-class="phcolor" type="text" name="phone" value="{{phone}}" placeholder="请填写" />
+                    </view>
+                </view>
+                <view class="list-item">
+                    <text class="label">我的职位</text>
+                    <view class="input-area">
+                        <input placeholder-class="phcolor" type="text" name="jobtitle" value="{{jobtitle}}" placeholder="请填写" />
+                    </view>
+                </view>
+            </view>
+            <view class="btn-box">
+                <button class="save-btn" formType="submit">保存</button>
+            </view>
+      </form>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import api from '@/api/companyapi';
+import tip from '../../utils/tip';
+import utils from'../../utils/utils';
+import {LOGIN_INFO} from '../../utils/constants';
+
+export default class BaseEdit extends wepy.page {
+  config = {
+      navigationBarTitleText: '编辑个人信息'
+  }
+   data = {
+      dictionaryList: ["DICT_BASE_SEX"],
+      username: '',
+      email: '',
+      phone: '',
+      jobtitle: '',
+      u_sex: '',
+      sex: [],
+      sexStatus: true,
+      showPortraitStatus: false,
+      tempPortraitFilePath: '',
+      indexSex: '',
+      loginInfo: {},
+      base64Img:''
+   }
+
+   onLoad(){
+       // this.loginInfo =  wx.getStorageSync(LOGIN_INFO) || {};
+       // this.$apply()
+       // this.getPimg();
+       const that = this;
+       wx.getStorage({
+           key: 'loginDataC',
+           success: function(res) {
+               console.log(res,'登录信息')
+               that.loginInfo = res.data
+               that.$apply();
+               that.getPimg()
+           },
+           fail: function(res) {
+             // 清空本地信息
+             wx.removeStorage('loginDataC')
+           }
+       })
+       that.$apply();
+       // 获取数据字典
+       // const that = this;
+        that.dictionaryList.forEach((item,index) => {
+            switch (item){
+                case "DICT_BASE_SEX":// 性别
+                  this.getDictData(item).then(json => {
+                    let arr = []
+                    json.data.data.forEach((item,index)=>{
+                        arr.push(item.label)
+                    })
+                    that.sex = arr;
+                    that.$apply();
+                  }).catch(json=>{
+                    if(json.data.returnMsg){
+                      tip.error(json.data.returnMsg);
+                    }
+                  })
+                  break;
+            }
+        });
+   }
+
+   methods = {
+       changePortrait(){
+           const that = this;
+           that.choosePortrait();
+       },
+       bindSexChange (event) {
+           this.sexStatus = false;
+           this.indexSex = event.detail.value;
+       },
+       baseEditSubmit(e){
+           this.username = e.detail.value.username;
+           this.email = e.detail.value.email;
+           this.phone = e.detail.value.phone;
+           this.jobtitle = e.detail.value.jobtitle;
+           this.editPersonalInfo()
+       }
+   }
+   choosePortrait(event) {
+       const that = this;
+       wx.chooseImage({
+           count: 1,
+           sizeType: ['compressed'],     // 可以指定是原图还是压缩图，默认二者都有
+           sourceType: ['album', 'camera'],        // 可以指定来源是相册还是相机，默认二者都有
+           success(res) {
+               if(res.tempFiles[0].size>1000000){
+                   tip.error("图片大小超出限制");
+                   return;
+               }
+               that.showPortraitStatus = true;
+               that.tempPortraitFilePath = res.tempFilePaths[0];
+
+               that.$apply()     // 返回选定照片的本地文件路径列表
+               console.log(res.tempFilePaths[0])
+               that.urlTobase64(that, res.tempFilePaths[0])
+           },
+           fail(){
+               console.log(`获取图片失败`)
+           }
+       })
+
+   }
+   urlTobase64(that,url){
+       wx.getFileSystemManager().readFile({
+         filePath: url, //选择图片返回的相对路径
+         encoding: 'base64', //编码格式
+         success: res => { //成功的回调
+           that.base64Img=res.data
+           that.$apply()
+         }
+       })
+   }
+
+   //修改个人信息
+    async editPersonalInfo() {
+        wx.showLoading({
+            title: '加载中',
+        })
+        const that = this;
+
+        const img = {
+          headimg:that.base64Img,
+        }
+        const otherdata ={
+          tokenKey: that.loginInfo.tokenKey,
+          token: that.loginInfo.token,
+          username: that.username,
+          sex: that.sex[that.indexSex] || that.u_sex,
+          email: that.email,
+          mobile: that.phone,
+          jobtitle: that.jobtitle
+        }
+        const obj =that.base64Img==''?otherdata:Object.assign(img, otherdata)
+        await api.changeUserInfo({
+            query: {
+                head:{
+                    type: "h",
+                    transcode: "H0076"
+                },
+                data:obj
+            }
+        }).then(json => {
+           tip.success("操作成功");
+           wx.navigateBack({
+             delta: 1
+           })
+        }).catch(err=>{
+            tip.error(err.data.returnMsg);
+        })
+        wx.hideLoading()
+    }
+
+    //获取个人信息
+    async getPimg() {
+        const that = this;
+        await api.getCompanyInfo({
+            query: {
+                    head: {
+                        "transcode": "H0013",
+                        "type": "h"
+                    },
+                    data: {
+                        "tokenKey": that.loginInfo.tokenKey,
+                        "token": that.loginInfo.token,
+                    }
+                }
+        }).then(json=>{
+          if(json.data.data.headimg){
+             that.showPortraitStatus = true;
+          }else{
+              that.showPortraitStatus = false;
+          }
+          that.tempPortraitFilePath = json.data.data.headimg;
+          that.username = json.data.data.username;
+          that.u_sex = json.data.data.sex;
+          that.email = json.data.data.email;
+          that.phone = json.data.data.phone;
+          that.jobtitle = json.data.data.jobtitle;
+          that.$apply();
+        }).catch(json=>{
+          if(json.data.returnMsg){
+            tip.error(json.data.returnMsg);
+          }
+        })
+    }
+    //获取数据字典
+    async getDictData(groupcode) {
+        const json = await api.getDictData({
+        query: {
+            head: {
+                "transcode": "DC001",
+                "type": "h"
+            },
+            data: {
+                "groupcode": groupcode,
+                "selAll": "true"
+            }
+        }
+        })
+        return json;
+    }
+
+}
+</script>

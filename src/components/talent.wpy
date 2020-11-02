@@ -1,0 +1,200 @@
+<style lang='scss'>
+  .flex{
+    display: flex;
+  }
+  .flex1{
+    flex:1;
+  }
+  .talent{
+    padding: 36rpx 0rpx 32rpx 4rpx;
+    border-bottom: 1rpx solid #f1f1f1;
+    margin: 0 28rpx;
+  }
+  .username{
+    line-height: 44RPX;
+    font-size: 32rpx;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .headimg{
+    margin-right: 20rpx;
+    image{
+      width: 72rpx;
+      height: 72rpx;
+    }
+  }
+
+  .salary{
+    font-size: 28rpx;
+    color: #F16049;
+  }
+  .hopepost{
+    line-height: 40rpx;
+    margin-top: 12rpx;
+    font-size: 28rpx;
+  }
+  .collect{
+    image{
+      width: 44rpx;
+      height: 42rpx;
+    }
+  }
+  .attr{
+    max-width: 80%;
+    text{
+      color: #a0a0a0;
+      font-size: 24rpx;
+      line-height: 34rpx;
+      &:not(:first-child){
+        margin-left: 6rpx;
+        &:before{
+          padding-right: 6rpx;
+          content: '|';
+        }
+      }
+    }
+  }
+  .lastjob{
+    text{
+      line-height: 34rpx;
+      font-size: 24rpx;
+      color: #A0A0A0;
+      margin-top: 12rpx;
+      &:not(:first-child){
+        margin-left: 6rpx;
+        &:before{
+          padding-right: 6rpx;
+          content: '-';
+        }
+      }
+    }
+  }
+  .bottom{
+    align-items: flex-end;
+  }
+</style>
+
+<template>
+  <view class="talent">
+    <view class="top flex"  @tap="jump">
+      <view class="headimg">
+        <image mode="aspectFit" wx:if="{{item.sex=='男'}}"  src="/images/icons/touxiang_nan.png"></image>
+        <image mode="aspectFit" wx:else="{{item.sex=='男'}}"  src="/images/icons/touxiang_nv.png"></image>
+      </view>
+      <view class="right flex1">
+        <view class="flex"><text class="flex1 username">{{item.username}}</text><text class="salary">{{item.salary}}</text></view>
+        <view class="attr">
+          <text wx:if="{{item.age}}">{{item.age}}</text>
+          <text wx:if="{{item.educationbg}}">{{item.educationbg}}</text>
+          <text wx:if="{{item.workyears}}">{{item.workyears}} </text>
+          <text wx:if="{{item.livecityid}}">{{item.livecityid}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="bottom flex">
+      <view class="flex1"  @tap="jump">
+        <text class=" hopepost">求职意向：{{item.titlenow}}</text>
+        <view class="lastjob">
+          <text wx:if="{{item.companynow}}">{{item.companynow}} </text>
+          <text wx:if="{{item.titlenow}}">{{item.titlenow}}</text>
+        </view>
+      </view>
+
+      <view class="collect" @tap="collect">
+        <image src="/images/icons/like_hl.png" mode="aspectFit" wx:if="{{item.iscollection=='1'}}"></image>
+        <image src="/images/icons/like.png" mode="aspectFit" wx:else="{{item.iscollection=='1'}}"></image>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy';
+  import api from './../api/companyapi';
+
+  export default class Talent extends wepy.component {
+
+    data={
+      token:'',
+      tokenKey:'',
+      item:{},
+      clicktag:0
+    }
+    props={
+      item:{
+         type:Object,
+         default:null,
+         twoWay:true
+       }
+    }
+    onLoad(options){
+      const that = this;
+      this.item=this.item
+
+      wx.getStorage({
+          key: 'loginDataC',
+          success: function(res) {
+            that.token = res.data.token;
+            that.tokenKey = res.data.tokenKey;
+            that.$apply();
+          }
+      })
+    }
+    //事件处理函数(集中保存在methods对象中)
+    methods = {
+        jump (e) {
+          const that =this
+          var resumeid=that.item.resumeid
+          var iscollection=that.item.iscollection
+          var collectionid=that.item.iscollection=='1'?that.item.collectionid:''
+          wepy.navigateTo({
+           url: '/companypages/personal/resume?resumeid='+resumeid+'&iscollection='+iscollection+'&collectionid='+collectionid
+          })
+        },
+        collect(){
+          var that =this;
+          if(!that.clicktag){
+            that.clicktag = 1;
+            that.operacollect()
+            setTimeout(function () {that.clicktag = 0}, 1000);
+          }else{
+            wepy.showToast({
+             title: '请勿频繁点击！',
+             icon: 'none',
+             duration: 1500
+           })
+          }
+          that.$apply();
+        }
+    }
+    // 添加收藏&&取消收藏
+    async operacollect(){
+      const that = this;
+      const item=that.item
+      const collectid = item.collectionid?item.collectionid:'';
+      console.log(collectid)
+      await api.collectResume({
+        query:{
+          head:{transcode: "H0018", type: "a"},
+          data:{
+            collectionid:collectid+'',
+            resumeid:item.resumeid,
+            token:that.token,
+            tokenKey:that.tokenKey,
+          }
+        }
+
+      }).then(res => {
+        const result= !(that.item.iscollection=='1')
+        that.item.iscollection=result?true:false
+        that.item.collectionid=result?res.data.collectionid.toString():''
+      }).catch(err => {
+
+      })
+      // that.collect=true
+      that.$apply();
+
+    }
+  }
+</script>

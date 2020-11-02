@@ -1,0 +1,408 @@
+<style lang='scss'>
+    .head-container {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        margin-top: 80rpx;
+        align-items: center;
+        image {
+            width: 40rpx;
+            height: 28rpx;
+            margin: 0rpx 30rpx;
+        }
+        .head-img {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            .image {
+                width: 120rpx;
+                height: 120rpx;
+                border-radius: 50%;
+            }
+            view {
+                margin-top: 20rpx;
+                color: #353535;
+                font-size: 28rpx;
+                text-align: center;
+            }
+        }
+    }
+    form {
+        view {
+            border-bottom: 2rpx solid #f1f1f1;
+            font-size: 28rpx;
+            margin: 0rpx 40rpx;
+            color: #353535;
+            .pholder {
+               color: #b2b2b2;
+            }
+            input {
+                height: 90rpx;
+            }
+        }
+        .telephone {
+            margin-top: 60rpx;
+        }
+        .verifycode {
+            margin-top: 10rpx;
+            position: relative;
+            display:flex;
+            input{
+              flex:1;
+            }
+
+        }
+        .save-btn{
+          background:linear-gradient(to right, #0f7aff, #048eff);
+          height:80rpx;
+          border-radius:16rpx;
+          text-align:center;
+          line-height:80rpx;
+          font-size:32rpx;
+          color:#ffffff;
+          margin:40rpx 28rpx 0;
+          border:none;
+        }
+    }
+    .opera {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        view {
+            color: #656565;
+            font-size: 24rpx;
+            text-align: center;
+            margin-top: 20rpx;
+        }
+    }
+    .warnword {
+        color: red;
+        font-size: 24rpx;
+        text-align: center;
+        margin-top: 30rpx;
+    }
+    .switch {
+        display: flex;
+        flex-direction: row;
+        width: 226rpx;
+        position: fixed;
+        bottom: 120rpx;
+        left: 50%;
+        margin-left: -113rpx;
+        .icon {
+            width: 36rpx;
+            height: 36rpx;
+            background: #F16049;
+            border-radius: 50%;
+        }
+        .word {
+            font-size: 28rpx;
+            color: #333333;
+            margin-left: 20rpx;
+            text-decoration: underline;
+        }
+    }
+    .bottom{
+      position: fixed;
+      left: 0;
+      bottom:40rpx;
+      font-size:24rpx;
+      text-align: center;
+      right: 0;
+      color: #5E5E5E;
+    }
+    .toggle{
+      color: blue;
+      font-size: 28rpx;
+      line-height: 34rpx;
+      margin-top: 24rpx;
+      text-align:center;
+    }
+    .send-code{
+        margin-top: 18rpx;
+        right: 0rpx;
+        width: 140rpx;
+        height: 50rpx;
+        border: #F16049 solid 1rpx;
+        color: #F16049;
+        font-size: 24rpx;
+        border-radius: 10rpx;
+        line-height: 50rpx;
+        text-align: center;
+        z-index: 2;
+        background-color: none;
+        padding-left: 0;
+        padding-right: 0;
+        background: #ffffff;
+        &[disabled]{
+          border: #999999 solid 1rpx!important;
+          color: #999999!important;
+          background: #ffffff;
+        }
+    }
+      .toregister{
+        font-size:24rpx;
+        text-align: center;
+        margin-top: 28rpx;
+        position: fixed;
+        bottom: 30rpx;
+        color: #5E5E5E;
+        text-align: center;
+        width: 100%;
+        navigator{
+            color: #F16049;
+            text-decoration: underline;
+            display: inline-block;
+        }
+        }
+</style>
+
+<template>
+    <view>
+        <view class="head-container">
+            <view class="head-img">
+                <open-data class="image" type="userAvatarUrl"></open-data>
+                <view><open-data type="userNickName"></open-data></view>
+            </view>
+            <image src="/images/icons/connect.png"></image>
+            <view class="head-img">
+                <image class="image" src="/images/icons/logo.png"></image>
+                <view>51高芯圈招聘版</view>
+            </view>
+        </view>
+        <form bindsubmit="formSubmit" >
+          <view wx:if="{{loginType==1}}">
+              <view class="telephone">
+                  <input placeholder-class="phcolor" type="text" name="username" placeholder="请输入手机号/邮箱" value="{{username}}" bindinput="inputChange" data-name="username" />
+              </view>
+              <view class="verifycode">
+                  <input placeholder-class="phcolor" type="password" name="passwd" placeholder="请输入密码" value="{{password}}" bindinput="inputChange" data-name="password" />
+              </view>
+              <button class="save-btn" formType="submit">进入招聘版小程序</button>
+          </view>
+          <view wx:if="{{loginType==2}}">
+              <view class="telephone">
+                  <input placeholder-class="phcolor" type="text" name="username" placeholder="请输入手机号" value="{{phone}}" bindinput="inputChange" data-name="phone" />
+              </view>
+              <view class="verifycode">
+                  <input placeholder-class="phcolor" type="password" name="vcode" placeholder="请输入验证码" maxlength="6" />
+
+                  <button @tap="sendCode" disabled="{{disabled}}" class="send-code">{{buttonvalue}}</button>
+                  <!-- <view class="send-code" bindtap="sendCode" wx:if="{{codeObj.status}}">{{codeObj.value}}</view>
+                  <view class="send-code send-code-gray" wx:else="{{codeObj.status}}" >{{codeObj.value}}</view> -->
+              </view>
+              <button class="save-btn" formType="submit">进入招聘版小程序</button>
+          </view>
+        </form>
+        <view class="toggle" wx:if="{{loginType==1}}" @tap="loginmethod" data-index="2">验证码登录</view>
+        <view class="toggle" wx:if="{{loginType==2}}" @tap="loginmethod" data-index="1">密码登录</view>
+        <view class="warnword">
+            {{warnword}}
+        </view>
+        <view class="switch" @tap="toggle">
+            <view class="icon"></view>
+            <view class="word">切换至个人版</view>
+        </view>
+        <!-- <view class="bottom">
+            <view>企业新用户注册请用电脑访问“www.51jrq.com”</view>
+        </view> -->
+        <view class="toregister">
+          <text>还没有帐号？</text>
+          <navigator url="/companypages/login/regist" hover-class="none">立即注册</navigator>
+        </view>
+    </view>
+</template>
+
+<script>
+
+import wepy from 'wepy';
+import api from '@/api/companyapi';
+import tip from '../../utils/tip';
+import {
+    LOGIN_INFO
+} from '../../utils/constants';
+
+// md5加密
+const code = require('../../utils/md5.js');
+
+export default class LoginPage extends wepy.page {
+
+    data = {
+        warnword:'',
+        loginType:'1',
+        password:'',
+        username:'',
+        phone:'',
+        buttonvalue:'发送验证码',
+        disabled:false,
+        wait:60,
+    }
+
+    onLoad () {
+        const that = this;
+        // 获取登录信息
+        wx.getStorage({
+            key: 'loginDataC',
+            success: function(res) {
+                if(res.data.returnCode=="AAAAAAA"){
+                    // 跳转到home页
+                    wx.switchTab({
+                        url: '../personal/personal'
+                    });
+                }
+            }
+        })
+    }
+    countdown() {
+        var that = this
+        if (that.wait == 0) {
+            that.disabled=false;
+            that.buttonvalue='重新发送';
+            this.wait=60;
+            that.$apply();
+        } else {
+          that.disabled=true;
+          that.wait--
+          that.buttonvalue="已发送(" + that.wait + ")";
+          that.$apply();
+            setTimeout(function() {
+                    that.countdown()
+                },
+                1000)
+        }
+    }
+    methods = {
+        inputChange(e){
+          this[e.currentTarget.dataset.name]=e.detail.value
+          this.$apply()
+        },
+        loginmethod(e){
+          var index=e.currentTarget.dataset.index
+          this.loginType=index
+          this.$apply()
+        },
+        toggle(){
+            wx.setStorageSync('type', '0')
+            wx.reLaunch({url:'/personpages/home/home'})
+        },
+        // 发送验证码
+        sendCode () {
+            const that = this;
+            var phone=that.phone.replace(/\s/g, "");//去除空格
+            let regs = /^((13[0-9])|(17[0-1,6-8])|(15[^4,\\D])|(18[0-9]))\d{8}$/;
+            if(phone.length==''){
+              tip.error('手机号不为空')
+              return false
+            }else if(!regs.test(phone)){
+              tip.error('手机号格式不正确')
+              return false
+            }
+            this.getLoginCode({"phone":phone},"H0080")
+        },
+        // 提交表单
+        formSubmit (e) {
+            wx.showLoading({
+                title: '登录中',
+            })
+            const that = this;
+
+            var phone=e.detail.value.username.replace(/\s/g, "");//去除空格
+            let data = {
+                "username": phone,
+                "passwd": that.loginType==2?'':code.hex_md5(e.detail.value.passwd),
+                "loginType":that.loginType,
+                "vcode":that.loginType==2?e.detail.value.vcode:'',
+                "deviceToken":'',
+            }
+            let regs = /^((13[0-9])|(17[0-1,6-8])|(15[^4,\\D])|(18[0-9]))\d{8}$/;
+            let emailregs = /^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z0-9]{2,6}$/;
+            if(that.loginType==2){
+
+              if(phone.length==''){
+                tip.error('手机号不为空')
+                return false
+              }else if(!regs.test(phone)){
+                tip.error('手机号格式不正确')
+                return false
+              }else if(e.detail.value.vcode==''){
+                tip.error('验证码不能为空')
+                return false
+              }
+            }else{
+              if(phone.length==''){
+                tip.error('手机号不为空')
+                return false
+              }else if(!(regs.test(phone) || emailregs.test(phone))){
+                tip.error('帐号格式有误')
+                return false
+              }else if(e.detail.value.passwd==''){
+                tip.error('请输入密码')
+                return false
+              }
+            }
+            this.login(data)
+        },
+    }
+
+    //用户登录
+    async login(data) {
+      var that=this
+        const json = await api.loginIn({
+        query: {
+                head: {
+                    "transcode": "H0001",
+                    "type": "h"
+                },
+                data: data
+            }
+        }).then(res=>{
+            console.log(res,'登录数据')
+          // 存储信息到本地
+            let loginInfo =  wx.getStorageSync(LOGIN_INFO) || {};
+            loginInfo.tokenKey = res.data.tokenKey;
+            loginInfo.token = res.data.token;
+            // loginInfo.headimg = data.data.data.headimg;
+            wx.setStorageSync(LOGIN_INFO, loginInfo);
+
+            wx.setStorage({
+                key:'loginDataC',
+                data:res.data
+            });
+            let isreg = res.data.isreg
+            let url = ''
+            if(isreg==7){
+                url = '/companypages/personal/personal'
+            }else if(isreg==1){
+                url = '/companypages/personal/com_baseinfo'
+            }
+            wx.redirectTo({url});
+
+        }).catch(data=>{
+          that.warnword = data.data.returnMsg;
+          that.$apply();
+        })
+        wx.hideLoading()
+
+    }
+    //获取登录验证码
+    async getLoginCode(data,code) {
+      var that=this
+        const json = await api.getLoginCode({
+        query: {
+                "head": {
+                    "transcode": code,
+                    "type": "h"
+                },
+                "data": data
+            }
+        }).then(data=>{
+            that.warnword = '';
+            that.countdown()
+        }).catch(data=>{
+          that.warnword = data.data.returnMsg;
+        })
+        that.$apply();
+    }
+
+}
+</script>

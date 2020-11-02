@@ -1,0 +1,442 @@
+<style lang='less'>
+  page{
+    background:#F0F1F2;
+    padding-bottom:120rpx;
+  }
+.job-main{
+  height:48rpx;
+}
+.jobinfo{
+  background:#ffffff;
+  padding:32rpx 28rpx 0;
+  margin-bottom:20rpx;
+}
+  .job-name{
+    line-height:48rpx;
+    color: rgba(53, 53, 53, 1);
+    font-size: 34rpx;
+    float:left;
+    max-width:80%;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+
+  }
+  .job-pay{
+    float:right;
+    color:#F16049;
+    font-size:28rpx;
+  }
+  .clearfix{
+    &:after{
+      content:'';
+      clear:both;
+      height:0;
+      dispaly:block;
+    }
+  }
+  .require{
+    view{
+      display:inline-block;
+      &:not(:last-child):after{
+        content:'|';
+        padding:0 6rpx;
+      }
+    }
+    color:#B2B2B2;
+    font-size:24rpx;
+    margin-bottom:14rpx;
+    line-height:34rpx;
+  }
+  .welfare{
+    padding-bottom:18rpx;
+    border-bottom:2rpx #F1F1F1 solid;
+    font-size:0;
+    line-height:0;
+    view{
+      display:inline-block;
+      color:#F16049;
+      border:2rpx solid #F16049;
+      font-size:24rpx;
+      line-height:34rpx;
+      padding:0 18rpx;
+      border-radius:80rpx;
+      margin-right:10rpx;
+      margin-bottom:10rpx;
+    }
+
+
+  }
+  .company{
+    display: flex;
+    display: -webkit-box;      /* OLD - iOS 6-, Safari 3.1-6 */
+    display: -moz-box;         /* OLD - Firefox 19- (buggy but mostly works) */
+    display: -ms-flexbox;      /* TWEENER - IE 10 */
+    display: -webkit-flex;
+    align-items:center;
+    padding:30rpx 0;
+    .company-info{
+      flex:1;
+      padding:0 20rpx;
+    }
+    .name{
+      line-height: 40rpx;
+      color: rgba(53, 53, 53, 1);
+      font-size: 28rpx;
+    }
+    .type{
+      color:#B2B2B2;
+      font-size:24rpx;
+      line-height: 34rpx;
+    }
+    .headimg{
+        height:80rpx;
+        width:80rpx;
+        dispaly:block;
+        border-radius:50%;
+    }
+    .arrow{
+      dispaly:block;
+      width:10rpx;
+      height:16rpx;
+    }
+  }
+  .job-desc{
+    padding:0 28rpx;
+    background:#ffffff;
+  }
+  .title{
+    line-height: 80rpx;
+    color: rgba(53, 53, 53, 1);
+    font-size: 28rpx;
+    border-bottom:2rpx solid #f1f1f1;
+  }
+  .text{
+    line-height: 40rpx;
+    color: rgba(136, 136, 136, 1);
+    font-size: 28rpx;
+    padding:24rpx 0;
+  }
+  .bottomfixed{
+    width:100%;
+    position:fixed;
+    height:118rpx;
+    border-top:2rpx solid #f1f1f1;
+    background:#FCFCFC;
+    display: flex;
+    display: -webkit-box;      /* OLD - iOS 6-, Safari 3.1-6 */
+    display: -moz-box;         /* OLD - Firefox 19- (buggy but mostly works) */
+    display: -ms-flexbox;      /* TWEENER - IE 10 */
+    display: -webkit-flex;
+    align-items:center;
+    padding:0 28rpx;
+    box-sizing:border-box;
+    bottom:0;
+    view{
+      flex:1;
+      border-radius:16rpx;
+      text-align:center;
+      line-height:80rpx;
+      border:2rpx solid #F16049;
+      &:first-child{
+        background:#F16049;
+        color:#ffffff!important;
+      }
+      &:last-child{
+        margin-left:20rpx;
+        color:#F16049;
+      }
+      &.graybtn{
+      color:#ffffff;
+        border-color:#d1d1d1;
+        background:#D1D1D1!important;
+      }
+    }
+  }
+  .hide{
+    display:none!important;
+  }
+  .fail{
+    display:inline-block;
+    background:#F23B3B;
+    color:#ffffff;
+    border-radius:16rpx;
+    padding:0 8rpx;
+    line-height:30rpx;
+    margin-left:10rpx;
+    font-size:24rpx;
+    vertical-align:middle;
+  }
+</style>
+
+<template>
+
+    <view>
+      <view class="jobinfo">
+        <view class="clearfix job-main">
+          <view class="job-name">{{jobinfo.jobname}}
+            <view class="fail" wx:if="{{status==5}}">已驳回</view>
+          </view>
+          <view class="job-pay">{{jobinfo.salary}}</view>
+        </view>
+        <view class="require">
+          <view>{{jobinfo.jobcity}}</view>
+          <view>{{jobinfo.jobaddress}}</view>
+          <view>{{jobinfo.workyears}}</view>
+          <view>{{jobinfo.ebid}}</view>
+        </view>
+        <view class="welfare" >
+          <block wx:if="{{welfare.length>0}}">
+          <view wx:for='{{welfare}}' wx:key='this' data-index='{{index}}' index="index" >{{item}}</view>
+        </block>
+        </view>
+        <view class="company" >
+          <image src="{{mblog}}" class="headimg" mode="widthFix"></image>
+          <view class="company-info">
+            <view class="name">{{corpname}}</view>
+            <view class="type">{{scope}} | {{nature}}</view>
+          </view>
+          <image src="../../images/icons/arrow_right.png" class="arrow hide"></image>
+        </view>
+      </view>
+
+      <view class="job-desc">
+        <view class="title">职位描述</view>
+        <view class="text">
+          <text decode="{{true}}">{{jobinfo.jobdescription}}</text>
+
+        </view>
+
+      </view>
+
+      <view class="bottomfixed">
+
+      <block wx:if="{{status==1}}">
+        <view class="graybtn">审核中…</view>
+      </block>
+        <block wx:if="{{status==2}}">
+          <view @tap="edit">编辑职位</view>
+          <view @tap="offline">下线</view>
+        </block>
+        <block wx:if="{{status==4 || status==3}}">
+          <view @tap="againissue">重新发布</view>
+        </block>
+        <block wx:if="{{status==5}}">
+          <view>重新编辑并发布</view>
+        </block>
+
+      </view>
+
+
+    </view>
+
+</template>
+
+<script>
+
+import wepy from 'wepy';
+import api from '@/api/companyapi';
+import tip from '../../utils/tip';
+
+
+export default class Jobdetails extends wepy.page {
+    config = {
+        navigationBarTitleText: '职位详情',
+    }
+    data = {
+        init:false,
+        token:'',
+        tokenKey:'',
+        // headimg:'',
+        mblog:'',
+        scope:'',
+        nature:'',
+        corpname:'',
+        jobinfo:null,
+        companyinfo:null,
+        welfare:[],
+        jobid:'',
+        corpid:'',
+        status:1,
+        refresh:false
+    };
+    components = {
+
+    };
+    methods={
+      edit(){
+        var that=this;
+        wepy.navigateTo({
+          url:'/companypages/personal/release_posi?jobid='+that.jobid
+        })
+      },
+      againissue(){
+        this.operateJob('4')
+      },
+      offline(){
+
+        var that=this;
+        wx.showModal({
+           title: '下线职位',
+           content: '确定下线该职位？',
+           showCancel: true,//是否显示取消按钮
+           success: function (res) {
+              if (res.cancel) {
+                   //点击取消,默认隐藏弹框
+              } else {
+                 //点击确定
+                 that.operateJob('2')
+              }
+           },
+           fail: function (res) { },//接口调用失败的回调函数
+           complete: function (res) { },//接口调用结束的回调函数（调用成功、失败都会执行）
+        })
+      }
+
+    };
+    onLoad(options) {
+
+        // 获取登录信息
+        const that = this;
+        that.jobid=options.jobid
+        that.status=options.status
+        that.$apply();
+        wx.getStorage({
+            key: 'loginDataC',
+            success: function(res) {
+            console.log(res)
+                that.token = res.data.token;
+                that.tokenKey = res.data.tokenKey;
+                that.corpid = res.data.corpid.toString();
+                // that.headimg=res.data.headimg
+                that.$apply();
+                // 获取企业职位详情
+                that.getJobInfo(res.data.token,res.data.tokenKey)
+                that.getCompanyInfo(res.data.token,res.data.tokenKey)
+
+            }
+        });
+    };
+
+    onShow(){
+      const that = this
+      const {status,init} = that
+      if(status==2&&init){
+        wx.getStorage({
+            key: 'loginDataC',
+            success: function(res) {
+              that.getJobInfo(res.data.token,res.data.tokenKey)
+            }
+        })
+      }
+    }
+
+    async getJobInfo(token, tokenKey) {
+        wx.showLoading({
+            title: '加载中',
+        })
+        const that = this;
+        const json = await api.getJobInfo({
+            query: {
+                head: {
+                    "transcode": "H0051",
+                    "type": "h"
+                },
+                data: {
+                    "token": token,
+                    "tokenKey": tokenKey,
+                    "jobid":this.jobid
+                }
+            }
+        }).then(json=>{
+          that.init = true
+          that.jobinfo=json.data.data;
+          that.welfare = json.data.data.weal==''?[]:json.data.data.weal.split(',');
+          that.$apply();
+        }).catch(json=>{
+          that.init = true
+          that.collectStatus = false;
+          tip.error(json.data.returnMsg)
+        })
+        wx.hideLoading()
+        that.$apply();
+    };
+    async getCompanyInfo(token, tokenKey) {
+        wx.showLoading({
+            title: '加载中',
+        })
+        const that = this;
+        const json = await api.getCompanyInfo({
+            query: {
+                head: {
+                    "transcode": "H0014",
+                    "type": "h"
+                },
+                data: {
+                    "token": token,
+                    "tokenKey": tokenKey,
+                }
+            }
+        }).then(json=>{
+          that.corpname=json.data.data.corpname
+          that.nature=json.data.data.nature
+          that.scope=json.data.data.scope
+          that.mblog=json.data.data.mblog
+
+          // that.companyinfo=json.data.data.corpinfo;
+          that.$apply();
+        }).catch(json=>{
+          that.collectStatus = false;
+          tip.error(json.data.returnMsg)
+        })
+        wx.hideLoading()
+        that.$apply();
+    };
+    async operateJob(status){
+      const that = this;
+        const json = await api.closeJob({
+            query: {
+                head: {
+                    "transcode": "H0032",
+                    "type": "h"
+                },
+                data: {
+                    "token": that.token,
+                    "tokenKey": that.tokenKey,
+                    jobid:that.jobid,
+                    status:status
+                }
+            }
+        }).then(json=>{
+          that.refresh=true
+             if(that.status==2){
+               that.status=3
+             }else if(that.status==3||that.status==4){
+               that.status=2
+             }
+           that.$apply();
+           tip.error('操作成功')
+        }).catch(json=>{
+          tip.error('操作失败')
+        })
+
+      }
+
+      onUnload(){
+        var that=this
+          var pages = getCurrentPages(); // 当前页面
+          var beforePage = pages[pages.length - 2]; // 前一个页面
+          if(that.refresh){
+            // wx.navigateBack({
+            //    success: function() {
+                   beforePage.pageDataChange(); // 执行前一个页面的onLoad方法
+           //     }
+           // });
+          }
+
+
+      }
+
+
+}
+</script>

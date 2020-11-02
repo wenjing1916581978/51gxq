@@ -1,0 +1,511 @@
+<style lang="scss">
+    .base-edit-container {
+        display: flex;
+        flex-direction: column;
+        .portrait-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40rpx 0 10rpx;
+            .icon-upload {
+                margin-bottom: 10rpx;
+                width: 140rpx;
+                height: 140rpx;
+            }
+            text {
+                font-size: 24rpx;
+                color: #a0a0a0;
+            }
+        }
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            padding: 0 40rpx;
+            .list-item {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 28rpx;
+                color: #888888;
+                height: 100rpx;
+                border-bottom: #f1f1f1 solid 2rpx;
+                .label {
+                    min-width: 120rpx;
+                    color: #353535;
+                }
+            }
+            .input-area {
+                input {
+                    text-align: right;
+                    color: #888888;
+                    width: 100%;
+                }
+                .phcolor {
+                    color: #888888;
+                    text-align: right;
+                }
+            }
+        }
+        .work-content {
+            height: 80rpx;
+            font-size: 28rpx;
+            line-height: 80rpx;
+            margin-left: 40rpx;
+            color: #353535;
+        }
+        .big {
+            background: white;
+            .section {
+                margin: auto 40rpx;
+                textarea {
+                    padding: 30rpx auto;
+                    width: 100%;
+                    font-size: 28rpx;
+                    color: #888888;
+                }
+            }
+        }
+        .btn-box {
+            margin: 50rpx auto;
+            width:586rpx;
+            height:80rpx;
+            .save-btn {
+                width:586rpx;
+                height:80rpx;
+                text-align:center;
+                font-size:36rpx;
+                color:#fff;
+                background-color:#1596FF;
+            }
+        }
+    }
+    .textarea{
+      padding:20rpx 0;
+    }
+</style>
+
+<template>
+  <view class="base-edit-container">
+      <form bindsubmit="baseEditSubmit">
+            <block wx:if="{{content==1}}">
+            <view class="portrait-box" @tap.stop="changePortrait">
+                <image mode="aspectFill" wx:if="{{showPortraitStatus}}" class="icon-upload" src="{{tempPortraitFilePath}}"></image>
+                <image mode="aspectFill" wx:else="{{showPortraitStatus}}" class="icon-upload" src="/images/icons/upload_head.png"></image>
+                <text>点击更换头像</text>
+            </view>
+            <view class="list-container">
+                <view class="list-item">
+                    <text class="label">公司名称</text>
+                    <view class="input-area">
+                        <input placeholder-class="phcolor" type="text" name="corpname" value="{{corpname}}" placeholder="请填写" />
+                    </view>
+                </view>
+                <view class="list-item">
+                    <text class="label">所在地</text>
+                    <picker name="city" bindchange="bindPickerChange1" value="{{city[index1]}}" range="{{city}}">
+                        <view class="picker" wx:if="{{cityStatus}}">
+                            {{u_city?u_city:'请选择'}}
+                        </view>
+                        <view class="picker" wx:else="{{cityStatus}}">
+                            {{city[index1]}}
+                        </view>
+                    </picker>
+                </view>
+                <view class="list-item">
+                    <text class="label">公司性质</text>
+                    <picker name="nature" bindchange="bindPickerChange2" value="{{nature[index2]}}" range="{{nature}}">
+                        <view class="picker" wx:if="{{natureStatus}}">
+                            {{u_nature?u_nature:'请选择'}}
+                        </view>
+                        <view class="picker" wx:else="{{natureStatus}}">
+                            {{nature[index2]}}
+                        </view>
+                    </picker>
+                </view>
+                <view class="list-item">
+                    <text class="label">公司规模</text>
+                    <picker name="scope" bindchange="bindPickerChange3" value="{{scope[index3]}}" range="{{scope}}">
+                        <view class="picker" wx:if="{{scopeStatus}}">
+                            {{u_scope?u_scope:'请选择'}}
+                        </view>
+                        <view class="picker" wx:else="{{scopeStatus}}">
+                            {{scope[index3]}}
+                        </view>
+                    </picker>
+                </view>
+                <view class="list-item">
+                    <text class="label">行业</text>
+                    <picker name="industry" bindchange="bindPickerChange4" value="{{industry[index4]}}" range="{{industry}}">
+                        <view class="picker" wx:if="{{industryStatus}}">
+                            {{u_industry?u_industry:'请选择'}}
+                        </view>
+                        <view class="picker" wx:else="{{industryStatus}}">
+                            {{industry[index4]}}
+                        </view>
+                    </picker>
+                </view>
+                <view class="list-item">
+                    <text class="label">公司地址</text>
+                    <view class="input-area">
+                        <input placeholder-class="phcolor" type="text" name="address" value="{{address}}" placeholder="请填写" />
+                    </view>
+                </view>
+                <view class="list-item">
+                    <text class="label">公司电话</text>
+                    <view class="input-area">
+                        <input placeholder-class="phcolor" type="text" name="phone" value="{{phone}}" placeholder="请填写" />
+                    </view>
+                </view>
+
+            </view>
+            </block>
+            <block wx:if="{{content==2||corpid==''}}">
+              <view class="big">
+                  <view class="section">
+                      <textarea maxlength="-1" class="textarea" name="description" value="{{description}}" placeholder="请输入公司介绍（200字以内）" placeholder-style="color:#888888;font-size:28rpx;"  />
+                  </view>
+              </view>
+            </block>
+            <view class="btn-box">
+                <button class="save-btn" formType="submit">保存</button>
+            </view>
+      </form>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import api from '@/api/companyapi';
+import tip from '../../utils/tip';
+import utils from '../../utils/utils';
+import {LOGIN_INFO} from '../../utils/constants';
+
+export default class BaseEdit extends wepy.page {
+
+   data = {
+      dictionaryList: ["DICT_COMP_CITY","DICT_COMP_NATURE","DICT_COMP_SCOPE","DICT_COMP_INDUSTRY"],
+      index1: '',
+      index2: '',
+      index3: '',
+      index4: '',
+      corpname: '',
+      phone: '',
+      u_city: '',
+      city: [],
+      cityStatus: true,
+      u_scope: '',
+      scope: [],
+      scopeStatus: true,
+      u_industry: '',
+      industry: [],
+      industryStatus: true,
+      u_nature: '',
+      nature: [],
+      natureStatus: true,
+      showPortraitStatus: false,
+      tempPortraitFilePath: '',
+      loginInfo: {},
+      address:'',
+      description:'',
+      content:'1',
+      base64Img:'',
+      corpid:'',
+      logindata:{}
+   }
+
+   onLoad(options){
+       const that = this;
+    this.content=options.content
+    if(options.content==2){
+        wx.setNavigationBarTitle({
+            title: '公司简介'
+        })
+    }else{
+        wx.setNavigationBarTitle({
+          title: '公司基本信息'
+        })
+    }
+
+    // this.loginInfo =  wx.getStorageSync(LOGIN_INFO) || {};
+    wx.getStorage({
+        key: 'loginDataC',
+        success (res) {
+            that.logindata = res.data
+            that.loginInfo = res.data
+            that.$apply()
+            console.log('登录信息',res.data)
+            if(res.data.corpid){
+                that.getPimg();
+            }
+        // console.log(res.data)
+        }
+    })
+    //    if(){
+    //
+    //    }
+
+       // 获取数据字典
+
+        that.dictionaryList.forEach((item,index) => {
+            switch (item){
+                case "DICT_COMP_CITY":// 城市
+                    this.getDictData(item).then(json => {
+                            let arr = []
+                            json.data.data.forEach((item,index)=>{
+                                arr.push(item.label)
+                            })
+                            that.city = arr;
+                            that.$apply();
+                    }).catch(json=>{
+                      tip.error(json.data.returnMsg);
+                    })
+                break;
+                case "DICT_COMP_NATURE":// 公司性质
+                    this.getDictData(item).then(json => {
+                            let arr = []
+                            json.data.data.forEach((item,index)=>{
+                                arr.push(item.label)
+                            })
+                            that.nature = arr;
+                            that.$apply();
+                    }).catch(json=>{
+                      tip.error(json.data.returnMsg);
+                    })
+                break;
+                case "DICT_COMP_SCOPE":// 公司规模
+                    this.getDictData(item).then(json => {
+
+                      let arr = []
+                      json.data.data.forEach((item,index)=>{
+                          arr.push(item.label)
+                      })
+                      that.scope = arr;
+                      that.$apply();
+                    }).catch(json=>{
+                      tip.error(json.data.returnMsg);
+                    })
+                break;
+                case "DICT_COMP_INDUSTRY":// 所属行业
+                    this.getDictData(item).then(json => {
+                      let arr = []
+                      json.data.data.forEach((item,index)=>{
+                          arr.push(item.label)
+                      })
+                      that.industry = arr;
+                      that.$apply();
+                    }).catch(json=>{
+                      tip.error(json.data.returnMsg);
+                    })
+                break;
+            }
+        });
+   }
+
+   methods = {
+       changePortrait(){
+           const that = this;
+           that.choosePortrait();
+       },
+       baseEditSubmit(e){
+           this.corpname = e.detail.value.corpname;
+           this.city = e.detail.value.city;
+           this.nature = e.detail.value.nature;
+           this.scope = e.detail.value.scope;
+           this.industry = e.detail.value.industry;
+           this.address = e.detail.value.address;
+           this.phone = e.detail.value.phone;
+           this.description = e.detail.value.description;
+           this.$apply();
+           if(this.corpid==''&&this.description==''){
+               tip.error("公司介绍不为空");
+               return false
+           }
+           this.changeCompanyinfo()
+       },
+       bindPickerChange1: function(e) {
+            this.cityStatus = false;
+            this.index1 = e.detail.value;
+            this.$apply();
+        },
+        bindPickerChange2: function(e) {
+            this.natureStatus = false;
+            this.index2 = e.detail.value;
+            this.$apply();
+        },
+        bindPickerChange3: function(e) {
+            this.scopeStatus = false;
+            this.index3 = e.detail.value;
+            this.$apply();
+        },
+        bindPickerChange4: function(e) {
+            this.industryStatus = false;
+            this.index4 = e.detail.value;
+            this.$apply();
+        },
+   }
+
+    choosePortrait(event) {
+        const that = this;
+        wx.chooseImage({
+            count: 1,
+            sizeType: ['compressed'],     // 可以指定是原图还是压缩图，默认二者都有
+            sourceType: ['album', 'camera'],        // 可以指定来源是相册还是相机，默认二者都有
+            success(res) {
+                if(res.tempFiles[0].size>1000000){
+                    tip.error("图片大小超出限制");
+                    return;
+                }
+                that.showPortraitStatus = true;
+                that.tempPortraitFilePath = res.tempFilePaths[0];
+
+                that.$apply()     // 返回选定照片的本地文件路径列表
+                console.log(res.tempFilePaths[0])
+                that.urlTobase64(that, res.tempFilePaths[0])
+            },
+            fail(){
+                console.log(`获取图片失败`)
+            }
+        })
+
+    }
+    urlTobase64(that,url){
+        wx.getFileSystemManager().readFile({
+          filePath: url, //选择图片返回的相对路径
+          encoding: 'base64', //编码格式
+          success: res => { //成功的回调
+            that.base64Img=res.data
+            that.$apply()
+          }
+        })
+    }
+
+   //修改公司信息
+    async changeCompanyinfo() {
+        const that = this
+        wx.showLoading({
+            title: '加载中',
+        })
+
+        const img = {
+          mlogo:that.base64Img,
+        }
+        const otherdata ={
+          corpid:that.corpid.toString(),
+          tokenKey: that.loginInfo.tokenKey,
+          token: that.loginInfo.token,
+          city: that.city || that.u_city,
+          nature: that.nature || that.u_nature,
+          scope: that.scope || that.u_scope,
+          industry: that.industry || that.u_industry,
+          corpname: that.corpname,
+          address: that.address,
+          phone: that.phone,
+          description: that.description,
+        }
+        const data =that.base64Img==''?otherdata:Object.assign(img, otherdata)
+
+        await api.changeInfo({
+            query: {
+                head:{
+                    type: "h",
+                    transcode: "H0004",
+                },
+                data:data
+            }
+        }).then(json => {
+
+
+          tip.success("操作成功");
+          if(that.corpid!=''){
+            wx.navigateBack({
+               delta:1
+            })
+          }else{
+              console.log('完善信息',json,that.logindata,json.data.data.corpid)
+              that.logindata.corpid = json.data.data.corpid
+              that.$apply()
+              // wx.setStorage({
+              //   key:'loginDataC',
+              //   data:that.logindata,
+                // success (res) {
+                //     wx.redirectTo({url:'/companypages/personal/personal'});
+                // }
+              // });
+              wx.setStorage({
+                  key:'loginDataC',
+                  data:{
+                    tokenKey: that.loginInfo.tokenKey,
+                    token: that.loginInfo.token,
+                    username:that.phone,
+                    corpname: that.corpname,
+                    corpid:json.data.data.corpid,
+                    userid:json.data.data.userid,
+                  },
+                  success (res) {
+                      wx.redirectTo({url:'/companypages/personal/personal'});
+                  }
+              });
+
+          }
+
+        }).catch(json=>{
+          tip.error(json.data.returnMsg);
+        })
+        wx.hideLoading()
+    }
+
+    //获取公司信息
+    async getPimg() {
+        const that = this;
+        await api.getCompanyInfo({
+            query: {
+                    head: {
+                        "transcode": "H0014",
+                        "type": "h"
+                    },
+                    data: {
+                        "tokenKey": that.logindata.tokenKey,
+                        "token": that.logindata.token,
+                    }
+                }
+        }).then(json=>{
+          if(json.data.data.mblog){
+             that.showPortraitStatus = true;
+          }else{
+              that.showPortraitStatus = false;
+          }
+          that.corpid= json.data.data.corpid
+          that.tempPortraitFilePath = json.data.data.mblog;
+          that.corpname = json.data.data.corpname;
+          that.u_city = json.data.data.city;
+          that.u_nature = json.data.data.nature;
+          that.u_scope = json.data.data.scope;
+          that.u_industry = json.data.data.industry;
+          that.address = json.data.data.address;
+          that.phone = json.data.data.phone;
+          that.description = json.data.data.description;
+          that.$apply();
+        }).catch(json=>{
+          tip.error(json.data.returnMsg);
+        })
+    }
+    //获取数据字典
+    async getDictData(groupcode) {
+        const json = await api.getDictData({
+        query: {
+            head: {
+                "transcode": "DC001",
+                "type": "h"
+            },
+            data: {
+                "groupcode": groupcode,
+                "selAll": "true"
+            }
+        }
+        })
+        return json;
+    }
+
+}
+</script>
