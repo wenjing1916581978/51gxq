@@ -1,3 +1,14 @@
+<style>
+  .flex{
+    display: flex;
+  }
+  .flex1{
+    flex: 1;
+  }
+  .aligncenter{
+    align-items: center;
+  }
+</style>
 <script>
 import wepy from 'wepy'
 import 'wepy-async-function'
@@ -11,7 +22,9 @@ setStore(store)
 export default class extends wepy.app {
   config = {
     pages: [
+
       'transit',
+      'pages/personal',
       'personpages/home/home',
       'personpages/home/url',
       'personpages/personal/delivery',
@@ -21,7 +34,7 @@ export default class extends wepy.app {
       'personpages/personal/import_resume',
       'personpages/personal/resume_list',
       'personpages/login/login',
-      'personpages/personal/personal',
+      // 'personpages/personal/personal',
       'personpages/login/regist',
       'personpages/personal/resume',
       'personpages/personal/certificate',
@@ -47,7 +60,7 @@ export default class extends wepy.app {
       'companypages/login/forgot',
       'companypages/login/regist',
 
-      'companypages/personal/personal',
+      // 'companypages/personal/personal',
       'companypages/delivery/delivery',
       'companypages/personal/release_posi',
       'companypages/personal/com_info',
@@ -62,6 +75,7 @@ export default class extends wepy.app {
       'companypages/agreeinterview/agreeinterview',
       'companypages/personal/viewhomepage',
       'companypages/personal/welfare',
+
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -69,50 +83,41 @@ export default class extends wepy.app {
       navigationBarTitleText: 'WeChat',
       navigationBarTextStyle: 'black'
     },
-    // tabBar: {
-    //   "color": "#a0a0a0",
-    //   "selectedColor": "#FFA315",
-    //   "backgroundColor": "#ffffff",
-    //   list: [
-    //     // {
-    //     //     'pagePath': 'companypages/joblist/joblist',
-    //     //     'iconPath': 'images/icons/main.png',
-    //     //     'selectedIconPath': 'images/icons/main_selected.png',
-    //     //     'text':'主页'
-    //     //   }, {
-    //     //     'pagePath': 'companypages/search/search',
-    //     //     'iconPath': 'images/icons/search.png',
-    //     //     'selectedIconPath': 'images/icons/search_selected.png',
-    //     //     'text':'搜索'
-    //     //   },{
-    //     //     'pagePath': 'companypages/delivery/delivery',
-    //     //     'iconPath': 'images/icons/news.png',
-    //     //     'selectedIconPath': 'images/icons/news_selected.png',
-    //     //     'text':'投递动态'
-    //     //   }, {
-    //     //     'pagePath': 'companypages/personal/personal',
-    //     //     'iconPath': 'images/icons/my.png',
-    //     //     'selectedIconPath': 'images/icons/my_selected.png',
-    //     //     'text':'我的'
-    //     //   }
-    //     {
-    //       'pagePath': 'personpages/home/home',
-    //       'text': '主页',
-    //       'iconPath': 'images/icons/home.png',
-    //       'selectedIconPath': 'images/icons/home_hl.png'
-    //     }, {
-    //       'pagePath': 'personpages/corporation/corporation',
-    //       'text': '公司',
-    //       'iconPath': 'images/icons/corp.png',
-    //       'selectedIconPath': 'images/icons/corp_hl.png'
-    //     },{
-    //       'pagePath': 'personpages/personal/personal',
-    //       'text': '我的',
-    //       'iconPath': 'images/icons/pers.png',
-    //       'selectedIconPath': 'images/icons/pers_hl.png'
-    //     }
-    //   ]
-    // },
+    tabBar: {
+      "color": "#a0a0a0",
+      "selectedColor": "#FFA315",
+      "backgroundColor": "#ffffff",
+      list: [
+        {
+          'pagePath': 'companypages/joblist/joblist',
+          'iconPath': 'images/icons/main.png',
+          'selectedIconPath': 'images/icons/main_selected.png',
+          'text':''
+        },
+        {
+          'pagePath': 'companypages/delivery/delivery',
+          'iconPath': 'images/icons/news.png',
+          'selectedIconPath': 'images/icons/news_selected.png',
+          'text':''
+        },
+        {
+          'pagePath': 'personpages/home/home',
+          'text': '',
+          'iconPath': 'images/icons/home.png',
+          'selectedIconPath': 'images/icons/home_hl.png'
+        }, {
+          'pagePath': 'personpages/corporation/corporation',
+          'text': '',
+          'iconPath': 'images/icons/corp.png',
+          'selectedIconPath': 'images/icons/corp_hl.png'
+        },{
+          'pagePath': 'pages/personal',
+          'text': '',
+          'iconPath': 'images/icons/pers.png',
+          'selectedIconPath': 'images/icons/pers_hl.png'
+        }
+      ]
+    },
     "navigateToMiniProgramAppIdList": [
       "wxd48d26a8a3f6938f"
     ]

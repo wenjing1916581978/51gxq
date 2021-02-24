@@ -137,6 +137,9 @@ const  getViewContract = (params) => wxRequest(params, apimall + '/api/hr/viewCo
 //验证码登录
 const  getLoginCode = (params) => wxRequest(params, apimall + '/api/hr/sendVerificationCode');
 
+//验证码登录
+const  pcenter = (params) => wxRequest(params, apimall + '/api/hr/pcenter');
+
 
 module.exports = {
     loginIn,
@@ -182,5 +185,6 @@ module.exports = {
     getWResumeInfo,
     getResumedown,
     getViewContract,
-    getLoginCode
+    getLoginCode,
+    pcenter
 }

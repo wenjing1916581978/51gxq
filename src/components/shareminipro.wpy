@@ -348,7 +348,9 @@ export default class ShareMiniPro extends wepy.component {
 
             ctx.setFontSize(that.canvasRpx * 14);
             ctx.setFillStyle('#888888');
-            ctx.fillText(`${scope} | ${industry} | ${city}`, CANVAS_W / 2, that.canvasRpx * (60 + 20 + 10 + 20 + 10));
+            let t1 = scope&&industry?'|':''
+            let t2 = (scope||industry)&&city?'|':''
+            ctx.fillText(`${scope} ${t1} ${industry} ${t2} ${city}`, CANVAS_W / 2, that.canvasRpx * (60 + 20 + 10 + 20 + 10));
 
 
             //draw hint
@@ -368,7 +370,7 @@ export default class ShareMiniPro extends wepy.component {
         //样式待调整
         // ctx.setFontSize(that.canvasRpx * 10);
         // ctx.setFillStyle('#b2b2b2');
-        // ctx.fillText('51高芯圈 | 中国领先的金融职业平台', that.canvasRpx * (132), that.canvasRpx * 564);
+        // ctx.fillText('51高芯圈 | 中国领先的芯片职业平台', that.canvasRpx * (132), that.canvasRpx * 564);
 
         //draw wxacode
         const WXACODE_X = that.canvasRpx * 98;
@@ -458,7 +460,10 @@ export default class ShareMiniPro extends wepy.component {
 
             ctx.setFontSize(that.canvasRpx * 12);
             ctx.setFillStyle('#888888');
-            ctx.fillText(`${scope} | ${industry} | ${city}`, that.canvasRpx * 16, that.canvasRpx * (28 + 18 + 6));
+            let t1 = scope&&industry?'|':''
+            let t2 = (scope||industry)&&city?'|':''
+
+            ctx.fillText(`${scope} ${t1} ${industry} ${t2} ${city}`, that.canvasRpx * 16, that.canvasRpx * (28 + 18 + 6));
 
 
 
@@ -476,7 +481,7 @@ export default class ShareMiniPro extends wepy.component {
         //样式待调整
         // ctx.setFontSize(that.canvasRpx * 10);
         // ctx.setFillStyle('#b2b2b2');
-        // ctx.fillText('51高芯圈 | 中国领先的金融职业平台', that.canvasRpx * (132), that.canvasRpx * 564);
+        // ctx.fillText('51高芯圈 | 中国领先的芯片职业平台', that.canvasRpx * (132), that.canvasRpx * 564);
 
         //draw wxacode
         const WXACODE_SIZE = that.canvasRpx * 100;

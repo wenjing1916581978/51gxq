@@ -35,7 +35,7 @@ page{
         <i-tab-bar-item key="0" img="../../images/icons/home.png" current-img="../../images/icons/home_hl.png" title="主页"></i-tab-bar-item>
         <i-tab-bar-item key="1" img="../../images/icons/corp.png" current-img="../../images/icons/corp_hl.png" title="公司"></i-tab-bar-item>
         <!-- <i-tab-bar-item key="2" img="../../images/icons/xinshui.png" current-img="../../images/icons/xinshui_hl.png" title="薪税"></i-tab-bar-item> -->
-        <i-tab-bar-item key="3" img="../../images/icons/pers.png" current-img="../../images/icons/pers_hl.png" title="我的"></i-tab-bar-item>
+        <i-tab-bar-item key="2" img="../../images/icons/pers.png" current-img="../../images/icons/pers_hl.png" title="我的"></i-tab-bar-item>
     </i-tab-bar>
 </template>
 <script>
@@ -52,21 +52,16 @@ page{
         handleChange ({ detail }) {
           const v = detail.key
           let url = ''
-          if(v=='2'){
-            url='/personpages/salary/salary'
-            wx.navigateTo({url})
-          }else{
-            if(v=='0'){
-              url='/personpages/home/home'
-            }else if(v=='1'){
-              url='/personpages/corporation/corporation'
-            }else if(v=='3'){
-              url='/personpages/personal/personal'
-            }
-              wx.reLaunch({url})
+          if(v== this.current) return false
+          if(v=='0'){
+            url='/personpages/home/home'
+          }else if(v=='1'){
+            url='/personpages/corporation/corporation'
+          }else if(v=='2'){
+            url='/pages/personal'
           }
+          wx.reLaunch({url})
 
-            // console.log(url,v)
         }
     }
   }

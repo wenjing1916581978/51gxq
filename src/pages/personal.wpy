@@ -1,0 +1,467 @@
+<style lang='scss'>
+page {
+    background-color: #F0F1F2;
+}
+
+.baseinfo {
+  background-color: white;
+  // margin: 12rpx 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 40rpx 28rpx;
+  .headimg {
+      border-radius: 100%;
+      width: 94rpx;
+      height: 80rpx;
+  }
+  .name-intro {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      margin-left: 20rpx;
+      align-items:center;
+      width:100%;
+      .name-intro-bd {
+          display: flex;
+          flex-direction: column;
+      }
+      .name {
+          font-size: 36rpx;
+          color: #333333;
+          font-weight: 600;
+      }
+      .intro {
+          margin-top: 6rpx;
+          font-size: 26rpx;
+          color: #888888;
+      }
+      .intro2 {
+          margin-top: 6rpx;
+          font-size: 32rpx;
+          color: #888888;
+      }
+      .arrow_right {
+          width: 10rpx;
+          height: 16rpx;
+      }
+  }
+}
+
+.my-function {
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 0 28rpx;
+}
+
+.exit {
+  color: #353535;
+  font-size: 30rpx;
+  line-height: 82rpx;
+  background: white;
+  text-align: center;
+  line-height: 82rpx;
+  margin-top: 22rpx;
+}
+.sure {
+  font-size: 30rpx;
+  text-align: center;
+}
+.my-function {
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 0 28rpx;
+}
+.line {
+  padding: 30rpx 0;
+  border-bottom: 1rpx solid #F1F1F1;
+  &-icon{
+    width: 36rpx;
+    height: 36rpx;
+    margin-right: 20rpx;
+  }
+  &-arrow{
+    width: 10rpx;
+    height: 16rpx;
+  }
+  text {
+      color: rgba(53, 53, 53, 1);
+      font-size: 30rpx;
+  }
+}
+
+.edit_icon {
+    width: 68rpx;
+    height: 68rpx;
+}
+.mt{
+  margin-top: 20rpx
+}
+.space{
+  margin: 0 8rpx;
+}
+</style>
+
+<template>
+  <view class="personal-container">
+    <block wx:if="{{type==0}}">
+      <view class="baseinfo">
+        <image mode="aspectFill" data-url='base_edit'  @tap.stop="jumpto" src="{{headimg}}" class="headimg" wx:if="{{headimg}}"></image>
+        <image mode="aspectFill" class="headimg" data-url='base_edit'  @tap.stop="jumpto" src="/images/icons/upload_head.png" wx:else></image>
+        <view class="name-intro" data-url='base_edit'  @tap.stop="jumpto" wx:if="{{loginStatus}}">
+            <view class="name-intro-bd">
+                <view class="name">{{username}}</view>
+                <view class="intro">{{jobname}}</view>
+            </view>
+            <image src="/images/icons/arrow_right.png" class="arrow_right"></image>
+        </view>
+        <view class="name-intro" wx:else="{{loginStatus}}">
+          <view class="intro2" @tap="goLoginPage"><text>登录</text>  / <text>注册</text> </view>
+        </view>
+      </view>
+
+      <view class="my-function mt">
+        <view class="line flex aligncenter" data-url="resume_list" @tap="jumpto">
+          <image class="line-icon" src="/images/icons/resume.png" />
+          <text class="flex1">我的简历</text>
+          <image class="line-arrow" src="/images/icons/arrow_right.png"></image>
+        </view>
+        <view class="line flex aligncenter" data-url="delivery" @tap="jumpto">
+          <image class="line-icon" src="/images/icons/delivery.png"></image>
+          <text class="flex1">投递状态</text>
+          <image class="line-arrow" src="/images/icons/arrow_right.png"></image>
+        </view>
+        <view class="line flex aligncenter" data-url="collection" @tap="jumpto">
+          <image class="line-icon" src="/images/icons/collection.png"></image>
+          <text class="flex1">我的收藏</text>
+          <image class="line-arrow" src="/images/icons/arrow_right.png"></image>
+        </view>
+        <view class="line flex aligncenter" data-type='1' @tap="toggle">
+          <image class="line-icon" src="/images/icons/switch_icon_qiye.png"></image>
+          <text class="flex1">切换到企业版</text>
+          <image class="line-arrow" src="/images/icons/arrow_right.png"></image>
+        </view>
+      </view>
+    </block>
+
+
+    <block wx:else>
+
+      <view class="baseinfo">
+        <image mode="aspectFill" class="headimg" src="{{userinfo.headimg}}" wx:if="{{userinfo.headimg}}"></image>
+        <image mode="aspectFill" class="headimg" src="/images/icons/upload_head.png" wx:else></image>
+        <view class="name-intro" wx:if="{{loginStatus}}" data-url="base_edit" @tap.stop="skip">
+            <view class="name-intro-bd">
+                <view class="name">{{corpname}}</view>
+                <view class="intro">
+                  <text>{{userinfo.username}}</text>
+                  <text wx:if="{{userinfo.jobtitle&&userinfo.username}}" class="space">|</text>
+                  <text>{{userinfo.jobtitle}}</text>
+                </view>
+            </view>
+            <image src="/images/icons/edit_icon.png" class="edit_icon"></image>
+        </view>
+        <view class="name-intro" wx:else="{{loginStatus}}">
+            <view class="intro2" @tap="goLoginPage"><text>登录</text>  / <text>注册</text> </view>
+        </view>
+      </view>
+      <view class="my-function" style="margin-bottom: 22rpx;">
+          <view class="line aligncenter" @tap="goResumeList" style="border: none;border-top: 1rpx solid #F1F1F1;">
+            <view class="img-title">
+                <text>剩余简历下载次数：</text>
+                <text style="color: #F16049;">{{downcount}}</text>
+            </view>
+        </view>
+      </view>
+
+      <view class="my-function">
+        <view class="line aligncenter flex" data-url="posi_manage" @tap="skip">
+          <image class="line-icon" src="/images/icons/resume.png"></image>
+          <text class="flex1">职位管理</text>
+          <image class="line-arrow" src="/images/icons/arrow_right.png"></image>
+        </view>
+        <view class="line aligncenter flex" data-url="collection" @tap="skip">
+          <image class="line-icon" src="/images/icons/collection.png"></image>
+          <text class="flex1">我的收藏</text>
+          <image class="line-arrow" src="/images/icons/arrow_right.png"></image>
+        </view>
+        <view class="line aligncenter flex" data-url="download" @tap="skip">
+          <image class="line-icon" src="/images/icons/resume_download_icon.png"></image>
+          <text class="flex1">已下载的简历</text>
+          <image class="line-arrow" src="/images/icons/arrow_right.png"></image>
+        </view>
+        <view class="line aligncenter flex" data-url="com_info" @tap="skip">
+          <image class="line-icon" src="/images/icons/homepage_setting_icon.png"></image>
+          <text class="flex1">公司信息设置</text>
+          <image class="line-arrow" src="/images/icons/arrow_right.png"></image>
+        </view>
+        <view class="line aligncenter flex" data-url="1111" data-type='0' @tap="toggle">
+          <image class="line-icon" src="/images/icons/switch_icon_geren.png"></image>
+          <text class="flex1">切换至个人版</text>
+          <image class="line-arrow" src="/images/icons/arrow_right.png"></image>
+        </view>
+      </view>
+    </block>
+
+
+    <view class="exit" @tap="logout" wx:if="{{loginStatus}}">退出登录</view>
+
+    <i-modal  visible="{{ visible }}" bind:ok="yes" bind:cancel="cancel">
+      <view class="sure">确认退出登录？</view>
+    </i-modal>
+
+    <tabbar1 current="2" wx:if="{{type=='0'}}"></tabbar1>
+    <tabbar2 current="2" wx:else></tabbar2>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import papi from '@/api/personapi';
+import capi from '@/api/companyapi';
+import tip from '@/utils/tip';
+import {LOGIN_INFO} from '@/utils/constants';
+const utils = require('@/utils/utils');
+
+import Tab1 from '@/components/tabbar-p';
+import Tab2 from '@/components/tabbar-c';
+
+
+export default class PersPage extends wepy.page {
+    config = {
+      navigationBarTitleText: '51高芯圈',
+      usingComponents: {
+        "i-tab-bar": "../../iview/tab-bar/index",
+        "i-tab-bar-item": "../../iview/tab-bar-item/index",
+        "i-modal": "../../iview/modal/index"
+      }
+    }
+    data = {
+      type:'0',
+      username:'暂无',
+      headimg:'',
+      jobname:'',
+      token:'',
+      tokenKey:'',
+      have: true,
+      resumeid: '',
+      visible: false,
+      loginStatus: false,
+      headimg: '',
+      downcount:0,
+      corpname:'',
+      userinfo:{
+        headimg:'',
+        jobtitle:'',
+      }
+    }
+    components = {
+      tabbar1:Tab1,
+      tabbar2:Tab2
+    }
+    onLoad() {
+
+    }
+    // 转发分享
+    onShareAppMessage() {
+      var pages = getCurrentPages()    //获取加载的页面
+      var currentPage = pages[pages.length-1]    //获取当前页面的对象
+      var url = currentPage.route    //当前页面url
+      return {
+        title: '芯片职业机会尽在51高芯圈',
+        desc: '51高芯圈丨芯片人才求职招聘',
+        path: `/${url}`
+      }
+    }
+
+    onShow(){
+        const that = this;
+        wx.hideTabBar()
+        let type = wx.getStorageSync('type') || '0'
+        console.log('登录方式',type);
+        that.type = type
+        that.$apply()
+        that.getData(type)
+    }
+
+
+    getData(type){
+      const that = this
+      let name = type=='0'?'loginDataP':'loginDataC'
+
+      wx.getStorage({
+          key: name,
+          success: function(res) {
+
+            that.loginStatus = true;
+            that.token = res.data.token;
+            that.tokenKey = res.data.tokenKey;
+            that.$apply();
+            if(type=='0'){
+              that.getPimg();
+              if(!res.data.data.companyname || !res.data.data.jobname){
+                  that.have = false;
+              }
+            }else{
+              that.headimg = res.data.headimg;
+              that.username = res.data.username;
+              // that.getViewContract()
+              that.getUser()
+            }
+            that.$apply();
+          },
+          fail: function(res) {
+              // 清空本地信息
+              wx.removeStorage('loginDataP')
+              that.have = false;
+              that.loginStatus = false;
+              that.$apply();
+          }
+      })
+
+
+    }
+
+
+    methods = {
+      toggle(e){
+        const that = this
+        const {currentTarget:{dataset:{type}}} = e
+        wx.setStorageSync('type', type)
+        that.type=type
+        that.$apply()
+
+        if(type=='0'){
+          wx.reLaunch({url:'/personpages/home/home'})
+        }else{
+          wx.getStorage({
+            key: 'loginDataC',
+            success (res) {
+              wx.reLaunch({url:'/companypages/joblist/joblist'})
+            },
+            fail(err){
+              wx.reLaunch({url:'/companypages/login/login'})
+            }
+          })
+        }
+      },
+
+      jumpto(e){
+        const that = this;
+        const {currentTarget:{dataset:{url}}} = e
+        if(that.loginStatus){
+          wx.navigateTo({
+            url: '/personpages/personal/'+url
+          })
+        }else {
+          wx.reLaunch({url:'/companypages/login/login'})
+        }
+      },
+
+      skip(e){
+        const that = this;
+        const {currentTarget:{dataset:{url}}} = e
+        wx.navigateTo({
+            url: '/companypages/personal/'+url
+        })
+      },
+
+      logout () {// 退出登录
+          this.visible = true;
+      },
+      cancel () {// 取消
+          this.visible = false;
+      },
+      yes () {// 确定
+        const that = this
+        const {type} = that
+        // 清空本地信息
+        let name = type=='1'? 'loginDataC':'loginDataP'
+
+        wx.removeStorage({
+            key: name,
+            success (res) {
+                // 跳转登录页
+                if (type=='1') {
+                  wx.reLaunch({
+                      url: `/companypages/login/login`
+                  })
+                }else {
+                  wx.navigateTo({
+                    url: '/personpages/login/login'
+                  })
+                  that.headimg = ''
+                }
+
+            }
+        })
+      },
+      goLoginPage () {// 跳转登录页
+          wx.navigateTo({
+              url: `/personpages/login/login`
+          })
+      }
+
+    };
+    onHide(){
+      this.visible = false;
+    }
+
+    //获取个人信息
+    async getPimg() {
+      const that = this;
+      const json = await papi.getPimg({
+          query: {
+              head: {
+                  "transcode": "P0040",
+                  "type": "h"
+              },
+              data: {
+                  "tokenKey": that.tokenKey,
+                  "token": that.token,
+              }
+          }
+      })
+      if(json.data.returnCode == 'AAAAAAA') {
+          that.headimg = json.data.data.headimg;
+          that.username = json.data.data.username;
+          that.jobname = json.data.data.jobname;
+          that.$apply();
+      }else{
+          tip.error(json.data.returnMsg);
+      }
+    }
+
+    // 获取企业用户的用户信息
+    getUser(){
+      const that = this
+      capi.pcenter({
+        query: {
+          head: {
+            "transcode": "H00001",
+            "type": "h"
+          },
+          data: {
+            "token": that.token,
+            "tokenKey": that.tokenKey,
+          }
+        }
+      }).then(res=>{
+
+        const {data:{returnCode,data:{userinfo,contract_count,corpname}}}= res
+        if(returnCode== 'AAAAAAA'){
+          console.log('用户信息',res,userinfo);
+          that.downcount=contract_count
+          that.userinfo = userinfo
+          that.corpname = corpname
+          that.$apply()
+        }
+
+      }).catch(err=>{
+
+      })
+    }
+}
+</script>

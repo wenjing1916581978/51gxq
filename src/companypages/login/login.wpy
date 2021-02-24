@@ -227,6 +227,10 @@ const code = require('../../utils/md5.js');
 
 export default class LoginPage extends wepy.page {
 
+  config = {
+    navigationBarTitleText: '登录'
+  }
+
     data = {
         warnword:'',
         loginType:'1',

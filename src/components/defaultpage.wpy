@@ -18,7 +18,7 @@
     text-align:center;
   }
   .defaultpage-btn{
-    background: linear-gradient(to right,#F16049,#FFBD00);
+    background: linear-gradient(to right,#0043e9,#50f4f2);
     width: 360rpx;
     height: 80rpx;
     border-radius: 200rpx;

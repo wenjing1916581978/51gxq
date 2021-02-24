@@ -469,6 +469,7 @@ export default class DeliveryPage extends wepy.page {
 
     }
     onShow(){
+      wx.hideTabBar()
       this.isLogin()
     }
     // 页面刷新

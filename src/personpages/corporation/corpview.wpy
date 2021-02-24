@@ -131,6 +131,9 @@
             }
         }
     }
+    .space{
+      margin: 0 6rpx;
+    }
 </style>
 
 <template>
@@ -138,7 +141,13 @@
         <view class="head">
             <view class="corp-brief">
                 <view class="corp-name">{{corpInfo.corpname?corpInfo.corpname:'暂无'}}</view>
-                <view class="corp-type">{{corpInfo.city}} | {{corpInfo.scope}} | {{corpInfo.industry}}</view>
+                <view class="corp-type">
+                  <text>{{corpInfo.city}}</text>
+                  <text class="space" wx:if="{{corpInfo.city&&corpInfo.scope}}">|</text>
+                  <text>{{corpInfo.scope}}</text>
+                  <text class="space" wx:if="{{(corpInfo.city||corpInfo.scope)&&corpInfo.industry}}">|</text>
+                  <text>{{corpInfo.industry}}</text>
+                </view>
             </view>
             <image src="{{corpInfo.logo ? corpInfo.logo:'https://m.51jrq.com/images/corplog/commonlogo.png'}}"  mode="aspectFill"></image>
         </view>
@@ -255,8 +264,8 @@ export default class CorpDatailsView extends wepy.page {
       var url = currentPage.route    //当前页面url
       var id = this.companyid
       return {
-        title: '金融职业机会尽在51高芯圈',
-        desc: '51高芯圈丨金融人才求职招聘',
+        title: '芯片职业机会尽在51高芯圈',
+        desc: '51高芯圈丨芯片人才求职招聘',
         path: `/${url}?companyid=${id}`
       }
   }
@@ -312,7 +321,11 @@ export default class CorpDatailsView extends wepy.page {
         }
     })
     if (json.data.returnCode == "AAAAAAA") {
-      that.corpInfo = json.data.data.corpinfo;
+      let data = json.data.data.corpinfo
+      if(!data.industry) data.industry=''
+      that.corpInfo = data;
+
+      json.data.data.corpinfo
       console.log('公司信息',1111111,json.data.data.corpinfo)
       if(that.corpInfo.description){
             if(that.corpInfo.description.length > 100) {

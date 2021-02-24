@@ -108,7 +108,7 @@
             <view class="img-container {{_num=='3'?'img-container-active':''}}" bindtap="chooseCompany(3,'myBankHr')">
                 <image class="logo" src="/images/icons/jryc.png" />
                 <image wx:if="{{_num=='3'}}" class="green-gou" src="/images/icons/green_gou.png" />
-                <view class="word">金融英才</view>
+                <view class="word">芯片英才</view>
             </view>
         </view>
         <form bindsubmit="formSubmit">

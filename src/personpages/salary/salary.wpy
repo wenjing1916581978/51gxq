@@ -16,8 +16,8 @@
         var currentPage = pages[pages.length-1]    //获取当前页面的对象
         var url = currentPage.route    //当前页面url
         return {
-        title: '金融职业机会尽在51高芯圈',
-        desc: '51高芯圈丨金融人才求职招聘',
+        title: '芯片职业机会尽在51高芯圈',
+        desc: '51高芯圈丨芯片人才求职招聘',
         path: `/${url}`
         }
     }
